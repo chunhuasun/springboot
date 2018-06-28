@@ -68,6 +68,31 @@
 		    <artifactId>spring-boot-devtools</artifactId>
 		    <optional>true</optional> <!-- 这个需要为 true 热部署才有效 -->
 		</dependency>
+		
+		<!-- 百度人脸识别JAR包  ↓ -->
+	    <dependency>
+	        <groupId>com.baidu.api</groupId>
+	        <artifactId>face_sdk</artifactId>
+	        <version>1.3.4</version>
+	    </dependency>
+	    <!-- 百度人脸识别JAR包 ↑ --> 
+	    
+	    <!-- 百度黄反识别JAR包  ↓ -->
+	    <dependency>
+	       <groupId>com.baidu.aip</groupId>
+	       <artifactId>java-sdk</artifactId>
+	       <version>4.0.0</version>
+	    </dependency>
+	    <!-- 百度黄反识别JAR包 ↑ --> 
+	     
+	    <!-- 腾讯云对象存储COS Java SDK  ↓ -->
+	    <dependency>
+	        <groupId>com.qcloud</groupId>
+	        <artifactId>cos_api</artifactId>
+	        <version>4.4</version>
+	    </dependency>
+	    <!-- 腾讯云对象存储COS Java SDK  ↑ --> 
+	    
 
 	</dependencies>
 

@@ -15,6 +15,7 @@ import com.atguigu.springboot.entity.RuleCheckSingle;
 import com.atguigu.springboot.entity.User;
 import com.atguigu.springboot.func.PubInfoCheckFunc;
 import com.atguigu.springboot.func.PubInfoCheckInvoke;
+import com.atguigu.springboot.func.ShowTimeFunc;
 import com.atguigu.springboot.repository.CheckAddressRepository;
 import com.atguigu.springboot.repository.InfoCheckCardRepository;
 import com.atguigu.springboot.repository.InfoCheckCardResultRepository;
@@ -156,6 +157,7 @@ public class weixinsub6Controller {
 	public String wxFileSaveCos(@RequestParam("fromUser") String fromUser ,@RequestParam("tcontent") String tcontent ,
 			@RequestParam("send_file") MultipartFile file){
 		
+		  
 		String cos_url = "cosUrlInfo";
 		String image_text = "wxTenXunCosSend";
 		String cos_size = "";
@@ -164,6 +166,9 @@ public class weixinsub6Controller {
 		String sendImageInfo= ""; 
 		JSONObject object = null;
 		JSONObject jsonResult = new JSONObject(); 
+		
+		ShowTimeFunc showTimeFunc = new ShowTimeFunc();
+		showTimeFunc.setStartTime();
 		try {
 			//增加权限控制，限制不同等级的用户图片的处理次数
 			if("baiduocrAPi".equals(tcontent)||"baiduopusAPi".equals(tcontent)){
@@ -172,7 +177,9 @@ public class weixinsub6Controller {
 	    		funOpType = "imageSave";
 	    	}
 			serv_limit = dataManageInfo.getTrainUserServLimit(fromUser,funOpType);
-    	     
+			System.out.println("180---getTrainUserServLimit:");
+			showTimeFunc.setEndTime();
+			
 			object = JSONObject.fromObject(serv_limit);
 	    	String EndFlag = object.get("EndFlag").toString();
 	  		    
@@ -199,6 +206,10 @@ public class weixinsub6Controller {
 		    	} 
 		    	byte[] sendFileBufer = file.getBytes(); 
 		    	
+		    	
+		    	System.out.println("210---sendFileBufer:");
+				showTimeFunc.setEndTime();
+				
 		    	//1、存储图片
 		    	if("baiduocrAPi".equals(tcontent)){
 					//只解析图片文字信息不存储图片
@@ -216,7 +227,11 @@ public class weixinsub6Controller {
 				object=JSONObject.fromObject(cos_url);
 				cos_url = object.get("access_url").toString();
 				
-		    	//2、对图片进行图像审核
+				System.out.println("230---sendFileCosBufer:");
+				showTimeFunc.setEndTime();
+				
+		    	//2、对图片进行图像审核   考虑两种方式实现：1、修改权限对高权限人员不审核，2、修改审核的环节，可以在最后的提交环节建立单独的线程去审核，审不过则不展现。
+				/*
 				image_text = baiduApiImageCensor.imageCensor(cos_url);
 				if(!"合规".equals(image_text)){
 					jsonResult.put("opertype", "1");
@@ -224,12 +239,21 @@ public class weixinsub6Controller {
 		   			image_text = jsonResult.toString();
 		   			return image_text; 
 				}
+				*/
+				System.out.println("242---imageCensor:");
+				showTimeFunc.setEndTime();
+				
+				
 				jsonResult.put("cos_url", cos_url);
 		    	//3、对图片进行文字识别
+				/*
 				BASE64Encoder encoder = new BASE64Encoder();
 				sendImageInfo = encoder.encode(sendFileBufer); 
 			    image_text = baiduApiInfo.baiduocrAPiBase64(sendImageInfo);
-		    	
+			    */
+		    	System.out.println("252---baiduocrAPiBase64:");
+				showTimeFunc.setEndTime();
+				
 			    //4、存储图片地址信息
 			    if(!"baiduocrAPi".equals(tcontent)&&!"baiduopusAPi".equals(tcontent)){
 			    	image_text = dataManageInfo.savetxCOSData(fromUser,tcontent,cos_url,cos_size);

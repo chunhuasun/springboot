@@ -1,7 +1,5 @@
 package com.atguigu.springboot.repository;
 
-import java.util.List;
-
 import com.atguigu.springboot.entity.CheckAddress;
 
 import org.springframework.data.jpa.repository.JpaRepository;

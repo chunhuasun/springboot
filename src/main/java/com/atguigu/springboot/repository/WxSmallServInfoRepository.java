@@ -14,7 +14,7 @@ public interface WxSmallServInfoRepository extends JpaRepository<WxSmallServInfo
 	
 	//List<WxSmallServInfo> findByGetTypeAndFunOpTypeAndLockFlag(String getType,String funOpType,String lockFlag); 
 	
-	@Query(value = "select * from wx_small_serv_info where user_group_type = :userGroupType and user_serv_type = :userServType and use_eff_flag = :useEffFlag order by serv_order_id desc limit 40 ", nativeQuery = true)
+	@Query(value = "select * from wx_small_serv_info where user_group_type = :userGroupType and user_serv_type = :userServType and use_eff_flag = :useEffFlag order by serv_order_id asc limit 40 ", nativeQuery = true)
 	List<WxSmallServInfo> findByUserGroupTypeAndUserServTypeAndUseEffFlag(@Param("userGroupType")String userGroupType,@Param("userServType")String userServType,@Param("useEffFlag")String useEffFlag);
 	
 	//List<WxSmallServInfo> findByUserGroupTypeAndUserServTypeAndUseEffFlag(String userGroupType,String userServType,String useEffFlag);

@@ -48,9 +48,9 @@ public class weixinsub1Controller {
         String imageUrl = "http://mycos-1253822284.coscd.myqcloud.com/testfile/12345.jpg";
     	try { 
 	    	st_image_file_path = this.getClass().getResource("/").getPath()+"file/";  //目录包含中文将导致(系统找不到指定的路径。)
-	    	st_image_file_path = "D:/";  //本机测试用
+	    	//st_image_file_path = "D:/";  //本机测试用
 	    	System.out.println(st_image_file_path);
-	    	image_text = baiduApiFaceCheck.apifacedetect(imageUrl, st_image_file_path);  //将文件存入本地，然后使用本地图片路径调用方式
+	    	//image_text = baiduApiFaceCheck.apifacedetect(imageUrl, st_image_file_path);  //将文件存入本地，然后使用本地图片路径调用方式
 	    	
 	    	System.out.println(image_text);
 	    	

@@ -17,47 +17,18 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import org.springframework.data.domain.PageRequest; 
+import org.springframework.stereotype.Service; 
 
 import sun.misc.BASE64Decoder;
+   
 
-import com.atguigu.springboot.entity.RuleCheckSingle;
+import com.atguigu.springboot.entity.BaiduTokenPara;
+import com.atguigu.springboot.entity.TenxunCosInfo;
 import com.atguigu.springboot.entity.TrainItemInfo;
+import com.atguigu.springboot.entity.TrainItemOpus;
+import com.atguigu.springboot.entity.TrainItemOpusComment;
+import com.atguigu.springboot.entity.TrainItemOpusHome;
 import com.atguigu.springboot.entity.TrainItemSaveInfo;
 import com.atguigu.springboot.entity.TrainItemTimeInfo;
 import com.atguigu.springboot.entity.TrainPlanInfo;
@@ -66,8 +37,9 @@ import com.atguigu.springboot.entity.WxSmallServInfo;
 import com.atguigu.springboot.entity.WxSmallServLock;
 import com.atguigu.springboot.entity.WxSmallServLog;
 import com.atguigu.springboot.entity.WxSmallUser;
-import com.atguigu.springboot.entity.WxSmallUserAction;
-import com.atguigu.springboot.repository.RuleCheckSingleRepository;
+import com.atguigu.springboot.entity.WxSmallUserAction; 
+import com.atguigu.springboot.repository.BaiduTokenParaRepository;
+import com.atguigu.springboot.repository.TenxunCosInfoRepository;
 import com.atguigu.springboot.repository.TrainDictationInfoRepository;
 import com.atguigu.springboot.repository.TrainDictationWordRepository;
 import com.atguigu.springboot.repository.TrainItemAngleRepository;
@@ -90,10 +62,10 @@ import com.atguigu.springboot.repository.WxSmallServInfoRepository;
 import com.atguigu.springboot.repository.WxSmallServLockRepository;
 import com.atguigu.springboot.repository.WxSmallServLogRepository;
 import com.atguigu.springboot.repository.WxSmallUserActionRepository;
-import com.atguigu.springboot.repository.WxSmallUserRepository;
-import com.mysql.jdbc.util.Base64Decoder;
+import com.atguigu.springboot.repository.WxSmallUserRepository; 
+import com.atguigu.springboot.serv.baiduApiInfo;
 
-import java.text.ParseException; 
+ 
 
 @Service
 public class DataManageInfo {
@@ -144,8 +116,10 @@ public class DataManageInfo {
 	private TrainItemTaskRepository trainItemTaskRepository;
 	@Autowired
 	private TrainItemTaskCommentRepository trainItemTaskCommentRepository;
-	
-	 
+	@Autowired
+	private BaiduTokenParaRepository baiduTokenParaRepository;
+	@Autowired
+	private TenxunCosInfoRepository tenxunCosInfoRepository;
 	
 	/**
 	 * 2017-09-08 存储小程序用户登录信息 获取指定用户特定观察项目的指标数据
@@ -249,6 +223,54 @@ public class DataManageInfo {
 	    return returnTex;
 	}
 	
+	
+	/**
+	 * 2017-06-06 腾讯云COS对象存储 存储对象信息
+	 * 
+	 * @param fromUser
+	 *            用户信息
+	 * 
+	 * @return 返回信息逻辑处理标志
+	 */
+	public String savetxCOSData(String fromUser, String cosInfo,
+			String cosUrlInfo, String cosSize) throws UnknownHostException {
+
+		String returnTex = "OK";
+		
+		 
+		// 获取当日日期
+		Date now = new Date();
+		SimpleDateFormat dateFormat = new SimpleDateFormat(
+				"yyyy-MM-dd HH:mm:ss"); // 可以方便地修改日期格式
+		SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd"); // 可以方便地修改日期格式
+		String operDay = dayFormat.format(now);
+		SimpleDateFormat dayFormatId = new SimpleDateFormat("yyyyMMdd"); // 可以方便地修改日期格式
+		String operDayId = dayFormatId.format(now);
+		SimpleDateFormat daytFormatId = new SimpleDateFormat("yyyyMMddHHmmss"); // 可以方便地修改日期格式
+		String operDayt = daytFormatId.format(now);
+
+		long ingressIdCount = tenxunCosInfoRepository.count();
+
+		ingressIdCount += Long.parseLong(operDayt) * 1000;
+
+		// 添加数据
+		TenxunCosInfo tenxunCosInfo = new TenxunCosInfo(); 
+		
+		tenxunCosInfo.setFromUser(fromUser);
+		tenxunCosInfo.setCosInfo(cosInfo);
+		tenxunCosInfo.setCosSize(cosSize);
+		tenxunCosInfo.setCosUrlInfo(cosUrlInfo);
+		tenxunCosInfo.setIngressId(ingressIdCount);
+		tenxunCosInfo.setOperDate(operDay);
+		tenxunCosInfo.setOperDateId(operDayId);
+		tenxunCosInfo.setOperDateTime(operDayt);
+		
+		tenxunCosInfoRepository.save(tenxunCosInfo);
+
+        returnTex = Long.toString(ingressIdCount);
+ 
+		return returnTex;
+	}
 	
 	/**
 	 * 2017-11-21 微信小程序前置校验
@@ -1571,75 +1593,50 @@ public class DataManageInfo {
 				jsonarray = JSONArray.fromObject(list);
 				returnTex = jsonarray.toString();   
 			} 
-		} else if ("ItemOpusInfo".equals(getType)) {
+		} */
+		else if ("ItemOpusInfo".equals(getType)) {
 			String funOpType = object.get("funOpType").toString(); 
-			DBCursor cursor ;
-			List<DBObject> list;
-			List<DBObject> listDb;
 			JSONArray jsonarray;
-			query = new BasicDBObject(); // 查询条件
-			query.put("reqOpenId", reqOpenId); 
-			BasicDBObject filter_cloumn = new BasicDBObject(); // 查询字段
-//			filter_cloumn.put("reqItemTimeId", 1);
-			filter_cloumn.put("_id", 0); // 不显示ID字段
-
-			BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-			sort_cloumn.put("reqItemTimeId", -1);
+			WxSmallUser wxSmallUser ;
 			if ("opusappear".equals(funOpType)) //发布作品信息
 			{ 
 				String saveDataInfo = object.get("SaveDataInfo").toString(); 
-				
+				wxSmallUser = wxSmallUserRepository.findByOpenId(reqOpenId).get(0);
 				//获取用户信息写入发布信息中
-				query = new BasicDBObject(); // 查询条件
-				query.put("OpenId", reqOpenId);
-				cursor = smallusers.find(query, filter_cloumn)
-						.limit(1);
-				list = cursor.toArray();
-				if(!"Lvl0".equals(list.get(0).get("userGroupType"))){
+				if(!"Lvl0".equals(wxSmallUser.getUserGroupType())){
 					//默认使用 userGroupType 控制发布权限  
-					
 					jsonarray = JSONArray.fromObject(saveDataInfo); 
 			  		JSONObject jsonInfoOne = new JSONObject(); 
+			  		long reqItemTimeId = 0;
 			  		for(int i=0; i<jsonarray.size(); i++){ 
-			  			query = new BasicDBObject();
-					    cursor = trainItemOpus.find(query, filter_cloumn)
-								.limit(1).sort(sort_cloumn);
-						// 把结果集输出成list类型
-						list = cursor.toArray();
-						long reqItemTimeId = 0;
-						if (list.size() > 0) {
-							reqItemTimeId = (Long) list.get(0).get("reqItemTimeId") + 1;
-						} else {
-							reqItemTimeId = 1;
-						}
+			  			reqItemTimeId = trainItemOpusRepository.queryMaxReqItemTimeId();
+						reqItemTimeId += 1;
 						
 			  			jsonInfoOne = JSONObject.fromObject(jsonarray.get(i));  
 			  			
 			  			now = new Date();
 			  			timeStamp = timeStampmId.format(now);
 				  	    // 添加数据
-						DBObject newopus = new BasicDBObject();
-						
-						newopus.put("reqOpenId", reqOpenId);
-						newopus.put("operDayId", operDayId);
-						newopus.put("operDay", operDay);
-						newopus.put("reqItemTimeId", reqItemTimeId); 
-						newopus.put("timeStamp", timeStamp);
+			  			TrainItemOpus trainItemOpus = new TrainItemOpus();
+			  			 
+						trainItemOpus.setReqOpenId(reqOpenId);
+						trainItemOpus.setOperDayId(operDayId);
+						trainItemOpus.setOperDay(operDay);
+						trainItemOpus.setReqItemTimeId(reqItemTimeId);
+						trainItemOpus.setTimeStamp(timeStamp);
 						 
-						newopus.put("opustitle", jsonInfoOne.get("opustitle").toString());     //标题
-						newopus.put("opusurl", jsonInfoOne.get("opusurl").toString());         //图片地址
-						newopus.put("opusauthor", jsonInfoOne.get("opusauthor").toString());   //作品人
-						newopus.put("opusdate", jsonInfoOne.get("opusdate").toString());       //作品日期
-						newopus.put("opusdepict", jsonInfoOne.get("opusdepict").toString());   //作品信息
-						newopus.put("opustype", jsonInfoOne.get("opustype"));                  //作品类别
-						  
-						newopus.put("queryinfo", jsonInfoOne.get("opustitle").toString()+
-								                 jsonInfoOne.get("opusauthor").toString()+
-								                 jsonInfoOne.get("opusdepict").toString());
-						  
-						long count = trainItemOpus.save(newopus).getN();  
+						trainItemOpus.setOpustitle(jsonInfoOne.get("opustitle").toString());     //标题
+						trainItemOpus.setOpusurl(jsonInfoOne.get("opusurl").toString());         //图片地址
+						trainItemOpus.setOpusauthor(jsonInfoOne.get("opusauthor").toString());   //作品人
+						trainItemOpus.setOpusdate(jsonInfoOne.get("opusdate").toString());       //作品日期
+						trainItemOpus.setOpusdepict(jsonInfoOne.get("opusdepict").toString());   //作品信息
+						trainItemOpus.setOpustype(jsonInfoOne.get("opustype").toString());       //作品类别
+						trainItemOpus.setQueryinfo(jsonInfoOne.get("opustitle").toString()+
+								                   jsonInfoOne.get("opusauthor").toString()+
+								                   jsonInfoOne.get("opusdepict").toString());    //搜索关键字
+						
+						trainItemOpusRepository.save(trainItemOpus);
 			  		}
-			  		
 				}else{
 					returnTex = "还未获得发表作品的权限。";
 				}
@@ -1647,93 +1644,75 @@ public class DataManageInfo {
                 String querystamp = object.get("querystamp").toString();
                 
 				//获取用户信息写入发布信息中
-				query = new BasicDBObject(); // 查询条件
-				query.put("OpenId", reqOpenId);
-				cursor = smallusers.find(query, filter_cloumn)
-						.limit(1);
-				list = cursor.toArray();
-				if("".equals(list.get(0).get("userOperType1"))||"allow".equals(list.get(0).get("userOperType1"))){	
+				wxSmallUser = wxSmallUserRepository.findByOpenId(reqOpenId).get(0);
+				if("".equals(wxSmallUser.getUserOperType1())||wxSmallUser.getUserOperType1()==null||"allow".equals(wxSmallUser.getUserOperType1())){	
 					 
 					now = new Date();
 		  			timeStamp = timeStampmId.format(now);
 			  	    // 添加数据
-					DBObject newopus = new BasicDBObject();
-					newopus.put("reqOpenId", reqOpenId);
-					newopus.put("operDayId", operDayId);
-					newopus.put("operDay", operDay); 
-					newopus.put("timeStamp", timeStamp);
-					newopus.put("opustimeStamp", querystamp);  
-					newopus.put("publishInfo", object.get("SaveDataInfo"));   
+		  			TrainItemOpusComment trainItemOpusComment = new TrainItemOpusComment();
+					trainItemOpusComment.setReqOpenId(reqOpenId);
+					trainItemOpusComment.setOperDayId(operDayId);
+					trainItemOpusComment.setOperDay(operDay);
+					trainItemOpusComment.setTimeStamp(timeStamp);
+					trainItemOpusComment.setOpustimeStamp(querystamp);
+					trainItemOpusComment.setPublishInfo(object.get("SaveDataInfo").toString());
+					
 					//显示控制
-					newopus.put("showallow", "allow");
+					trainItemOpusComment.setShowallow("allow");
 					//用户信息 
-					newopus.put("pubNickName", list.get(0).get("nickName"));  
-					newopus.put("pubAvatarUrl", list.get(0).get("cosUrl"));
+					trainItemOpusComment.setPubNickName(wxSmallUser.getNickName());
+					trainItemOpusComment.setPubAvatarUrl(wxSmallUser.getCosUrl());
 					
 					if("opuspublish".equals(funOpType)){
-						query = new BasicDBObject(); // 查询当前作品的留言记录数
-		                query.put("opustimeStamp", querystamp); 
-		                query.put("pubFlag", "publish"); 
-		    			
-					    cursor = trainItemOpusComments.find(query, filter_cloumn)
-								.limit(1).sort(sort_cloumn); 
+						List<TrainItemOpusComment> trainItemOpusComments = 
+		                		trainItemOpusCommentRepository.queryByOpustimeStampPubFlag(querystamp, "publish",3);
 						// 把结果集输出成list类型
-						list = cursor.toArray();
 						long reqItemTimeId = 0;
-						if (list.size() > 0) {
-							reqItemTimeId = (Long) list.get(0).get("reqItemTimeId") + 1;
+						if (trainItemOpusComments.size() > 0) {
+							reqItemTimeId = (Long) trainItemOpusComments.get(0).getReqItemTimeId() + 1;
 						} else {
 							reqItemTimeId = 1;
-						}   
-						newopus.put("reqItemTimeId", reqItemTimeId);
-						newopus.put("pubFlag", "publish");  
+						}
+						trainItemOpusComment.setReqItemTimeId(reqItemTimeId);
+						trainItemOpusComment.setPubFlag("publish"); 
 					}else if("opustask".equals(funOpType)){
-						newopus.put("reqItemTimeId", Integer.parseInt(object.get("publishId").toString()));
-						newopus.put("pubFlag", "task");  
+						trainItemOpusComment.setReqItemTimeId(Long.parseLong(object.get("publishId").toString()));
+						trainItemOpusComment.setPubFlag("task");  
 					} 
-					long count = trainItemOpusComments.save(newopus).getN();  
+					trainItemOpusCommentRepository.save(trainItemOpusComment);
 				}else{
 					returnTex = "发言不合规，已被禁言";
 				}
-			} else if("killpublish".equals(funOpType)||"killtask".equals(funOpType)){ //删除留言、评论信息处理
+			}else if("killpublish".equals(funOpType)||"killtask".equals(funOpType)){ //删除留言、评论信息处理
                 String querystamp = object.get("querystamp").toString();
                 String killstamp = object.get("SaveDataInfo").toString();
                 String killflag = "0";
-                
+                String killPubFlag = "";
+                long killReqId = 0;
+                List<TrainItemOpusComment> trainItemOpusComments;
                 //查询用户的权限信息
-                query = new BasicDBObject(); // 查询条件
-                query.put("opustimeStamp", querystamp); 
-                query.put("timeStamp", killstamp);
                 if("killpublish".equals(funOpType)){
-                	query.put("pubFlag", "publish");  
+                	killPubFlag = "publish";  
 				}else if("killtask".equals(funOpType)){
-					query.put("pubFlag", "task"); 
+					killPubFlag = "task"; 
 				}
-                cursor = trainItemOpusComments.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn); 
-				// 把结果集输出成list类型
-                listDb = cursor.toArray();
-				if (listDb.size() > 0) {
-					String  pubOpenId = listDb.get(0).get("reqOpenId").toString() ;
+                
+                trainItemOpusComments = trainItemOpusCommentRepository.queryBytimeStampPubFlag(querystamp,killstamp,killPubFlag,3);
+                if (trainItemOpusComments.size() > 0) {
+					String  pubOpenId = trainItemOpusComments.get(0).getReqOpenId();
+					killReqId = trainItemOpusComments.get(0).getReqItemTimeId();
 					//检查当前的用户是否有操作权限
 					if(reqOpenId.equals(pubOpenId)){
 						//同一个用户随意操作
 						killflag = "1";
 					}else{
-						query = new BasicDBObject(); // 查询条件
-						query.put("OpenId", reqOpenId);
-						cursor = smallusers.find(query, filter_cloumn)
-								.limit(1);
-						list = cursor.toArray();
-						String reqOpGroup = list.get(0).get("userGroupType").toString();
+						wxSmallUser = wxSmallUserRepository.findByOpenId(reqOpenId).get(0);
+						String reqOpGroup = wxSmallUser.getUserGroupType();
 						
-						query = new BasicDBObject(); // 查询条件
-						query.put("OpenId", pubOpenId);
-						cursor = smallusers.find(query, filter_cloumn)
-								.limit(1);
-						list = cursor.toArray();
-						String pubOpGroup = list.get(0).get("userGroupType").toString();
-						
+						wxSmallUser = wxSmallUserRepository.findByOpenId(pubOpenId).get(0);
+						String pubOpGroup = wxSmallUser.getUserGroupType();
+						 
 						if(Integer.parseInt(pubOpGroup.substring(3))>Integer.parseInt(reqOpGroup.substring(3))){
 							killflag = "1";
 						}else{
@@ -1745,50 +1724,36 @@ public class DataManageInfo {
 				}
                 //删除数据
     			if("1".equals(killflag)){
-    				query = new BasicDBObject(); // 查询条件
-    				query.put("opustimeStamp", querystamp); 
-                    if("killpublish".equals(funOpType)){
-                    	query.put("reqItemTimeId", listDb.get(0).get("reqItemTimeId"));  
-                    	trainItemOpusComments.remove(query);
+    				if("killpublish".equals(funOpType)){
+                    	
+                    	trainItemOpusComments = trainItemOpusCommentRepository.queryByopusreqid(querystamp,killReqId);
+                    	trainItemOpusCommentRepository.delete(trainItemOpusComments);
                     }else if("killtask".equals(funOpType)){
-                    	query.put("timeStamp", killstamp);
-    					query.put("pubFlag", "task");
-                        trainItemOpusComments.remove(query);
+                    	trainItemOpusComments = trainItemOpusCommentRepository.queryBytimeStampPubFlag(querystamp,killstamp,killPubFlag,300);
+                    	trainItemOpusCommentRepository.delete(trainItemOpusComments); 
     				}
     			}else{
     				returnTex = "不能越权操作";
     			}
-			} else if("killopus".equals(funOpType)){ //删除作品信息处理
+			}else if("killopus".equals(funOpType)){ //删除作品信息处理
                 String querystamp = object.get("querystamp").toString();
                 String killflag = "0";
-                
+                List<TrainItemOpus> trainItemOpuss;
                 //查询用户的权限信息
-                query = new BasicDBObject(); // 查询条件
-                query.put("timeStamp", querystamp); 
-                cursor = trainItemOpus.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn); 
-				// 把结果集输出成list类型
-                listDb = cursor.toArray();
-				if (listDb.size() > 0) {
-					String  pubOpenId = listDb.get(0).get("reqOpenId").toString() ;
+                trainItemOpuss = trainItemOpusRepository.queryByTimeStamp(querystamp);
+                // 把结果集输出成list类型
+				if (trainItemOpuss.size() > 0) {
+					String  pubOpenId = trainItemOpuss.get(0).getReqOpenId();
 					//检查当前的用户是否有操作权限
 					if(reqOpenId.equals(pubOpenId)){
 						//同一个用户随意操作
 						killflag = "1";
 					}else{
-						query = new BasicDBObject(); // 查询条件
-						query.put("OpenId", reqOpenId);
-						cursor = smallusers.find(query, filter_cloumn)
-								.limit(1);
-						list = cursor.toArray();
-						String reqOpGroup = list.get(0).get("userGroupType").toString();
+						wxSmallUser = wxSmallUserRepository.findByOpenId(reqOpenId).get(0);
+						String reqOpGroup = wxSmallUser.getUserGroupType();
 						
-						query = new BasicDBObject(); // 查询条件
-						query.put("OpenId", pubOpenId);
-						cursor = smallusers.find(query, filter_cloumn)
-								.limit(1);
-						list = cursor.toArray();
-						String pubOpGroup = list.get(0).get("userGroupType").toString();
+						wxSmallUser = wxSmallUserRepository.findByOpenId(pubOpenId).get(0);
+						String pubOpGroup = wxSmallUser.getUserGroupType();
 						
 						if(Integer.parseInt(pubOpGroup.substring(3))>Integer.parseInt(reqOpGroup.substring(3))){
 							killflag = "1";
@@ -1801,234 +1766,122 @@ public class DataManageInfo {
 				}
                 //删除数据
     			if("1".equals(killflag)){
-    				query = new BasicDBObject(); // 查询条件
-    				query.put("timeStamp", querystamp); 
-    				trainItemOpus.remove(query);
+    				trainItemOpuss = trainItemOpusRepository.queryByTimeStamp(querystamp);
+    				trainItemOpusRepository.delete(trainItemOpuss);
     			}else{
     				returnTex = "不能越权操作";
     			}
-			} else if("queryComment".equals(funOpType)){ //查询留言、评论信息处理
+			}else if("queryComment".equals(funOpType)){ //查询留言、评论信息处理
                 String querystamp = object.get("querystamp").toString();
-                
-                query = new BasicDBObject(); // 查询条件
-				query.put("opustimeStamp", querystamp); 
-				query.put("showallow", "allow");
-				
+                List<TrainItemOpusComment> trainItemOpusComments;
+                 
+				trainItemOpusComments = trainItemOpusCommentRepository.queryByOpustimeStamp(querystamp, "allow", 40);
 				if(object.has("querymaxid")){
 					String querymaxid = object.get("querymaxid").toString();
 					if(Integer.parseInt(querymaxid)>0){
-						query.put("reqItemTimeId", new BasicDBObject("$lt", Integer.parseInt(querymaxid))); 
+						trainItemOpusComments = trainItemOpusCommentRepository.queryByReqItemTimeId(querystamp, "allow",querymaxid, 40);
 					}
-				}
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				sort_cloumn = new BasicDBObject();   // 排序字段
-				sort_cloumn.put("reqItemTimeId", -1);
-				sort_cloumn.put("pubFlag", 1);
-				sort_cloumn.put("timeStamp", -1);
-				
-				cursor = trainItemOpusComments.find(query, filter_cloumn)
-						.limit(40).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				}  
+				jsonarray = JSONArray.fromObject(trainItemOpusComments);
 				returnTex = jsonarray.toString();  
 				
 			}else if ("queryList".equals(funOpType)) { //查询信息列表
 				String queryinfo = object.get("queryinfo").toString();
 				String querystamp = object.get("querystamp").toString();
-				
-				query = new BasicDBObject(); // 查询条件
-				if(!"".equals(queryinfo)){
-					// 文件检索直接匹配文字即可
-					Pattern pattern = Pattern.compile("^.*" + queryinfo + ".*$", Pattern.CASE_INSENSITIVE);
-					query.put("queryinfo", pattern); // 模糊查询处理
+				List<TrainItemOpus> trainItemOpuss;
+				if("".equals(queryinfo)||queryinfo==null){
+					queryinfo = "";
 				}
-				if(!"".equals(querystamp)){
-					query.put("timeStamp", new BasicDBObject("$lt", querystamp)); 
+				if("".equals(querystamp)||querystamp==null){
+					querystamp = "99180123171240955";
 				}
-				  
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				sort_cloumn = new BasicDBObject();   // 排序字段
-				sort_cloumn.put("timeStamp", -1);
-				
-				cursor = trainItemOpus.find(query, filter_cloumn)
-						.limit(10).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
-				returnTex = jsonarray.toString();  
-				
+				 
+				trainItemOpuss = trainItemOpusRepository.queryByQueryinfo(queryinfo,querystamp,10);
+				jsonarray = JSONArray.fromObject(trainItemOpuss);
+				returnTex = jsonarray.toString();
 			}else if ("queryStamp".equals(funOpType)) {  //查看指定内容的评论信息
                 String querystamp = object.get("querystamp").toString();
-                
-                query = new BasicDBObject(); // 查询条件
-				query.put("timeStamp", querystamp); 
-				  
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				sort_cloumn = new BasicDBObject();   // 排序字段
-				sort_cloumn.put("timeStamp", -1);
-				
-				cursor = trainItemOpus.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
-				
+                List<TrainItemOpus> trainItemOpuss; 
+				trainItemOpuss = trainItemOpusRepository.queryByTimeStamp(querystamp);
+				jsonarray = JSONArray.fromObject(trainItemOpuss);
 				//后续增加留言和评论信息的查询
 				returnTex = jsonarray.toString();  
-			} else if ("setHome".equals(funOpType)) {  //修改主页设置
+			}else if ("setHome".equals(funOpType)) {  //修改主页设置
 				String saveDataInfo = object.get("SaveDataInfo").toString();
 				object = JSONObject.fromObject(saveDataInfo);
 				String cosimageurls = object.get("cosimageurls").toString();
 				jsonarray = JSONArray.fromObject(cosimageurls); 
-				
-				记录是否存在
-		  		query = new BasicDBObject(); // 查询条件
-		  		query.put("useFlag", "1");
-		  		long queryCount = trainItemOpusHomes.count(query);
+				TrainItemOpusHome trainItemOpusHome ;
+				//记录是否存在
+		  		List<TrainItemOpusHome> trainItemOpusHomes = trainItemOpusHomeRepository.queryByUseFlag("1");
+		  		long queryCount = trainItemOpusHomes.size();
 		  		if(queryCount>0){
-		  			BasicDBObject update_object = new BasicDBObject();
-					BasicDBObject set_object = new BasicDBObject();
-					set_object.put("reqOpenId", reqOpenId);
-					set_object.put("timeStamp", timeStamp); 
-					set_object.put("baseinfo", object.get("baseinfo"));
-					set_object.put("heightscale", object.get("heightscale"));
-					set_object.put("imagemode", object.get("imagemode")); 
-					
-					if(jsonarray.size()>0){
-						//存在图片全量更新
-						set_object.put("cosimageurls", object.get("cosimageurls"));
-					}
-					
-					update_object.put("$set", set_object);
-					trainItemOpusHomes.update(query, update_object, false, true);
+		  			trainItemOpusHome = trainItemOpusHomes.get(0);
 		  		}else{
 		  			 // 添加数据
-					DBObject newhomeinfo = new BasicDBObject();
-					
-					newhomeinfo.put("reqOpenId", reqOpenId);
-					newhomeinfo.put("timeStamp", timeStamp); 
-					newhomeinfo.put("useFlag", "1");
-					newhomeinfo.put("baseinfo", object.get("baseinfo"));
-					newhomeinfo.put("heightscale", object.get("heightscale"));
-					newhomeinfo.put("imagemode", object.get("imagemode"));
-					newhomeinfo.put("cosimageurls", object.get("cosimageurls")); 
-					    
-					queryCount = trainItemOpusHomes.save(newhomeinfo).getN();
+		  			trainItemOpusHome = new TrainItemOpusHome(); 
+		  			trainItemOpusHome.setUseFlag("1");
 		  		}
+		  		trainItemOpusHome.setReqOpenId(reqOpenId);
+				trainItemOpusHome.setTimeStamp(timeStamp);
+				trainItemOpusHome.setBaseinfo(object.get("baseinfo").toString());
+				trainItemOpusHome.setHeightscale(object.get("heightscale").toString());
+				trainItemOpusHome.setImagemode(object.get("imagemode").toString());
+				if(jsonarray.size()>0){
+					//存在图片全量更新
+					trainItemOpusHome.setCosimageurls(object.get("cosimageurls").toString());
+				}
+				trainItemOpusHomeRepository.save(trainItemOpusHome);
 				returnTex = "OK";  
 			} else if ("getHome".equals(funOpType)) {  //获取主页设置
-				记录是否存在
-		  		query = new BasicDBObject(); // 查询条件
-		  		query.put("useFlag", "1");
-		  		
-		  		filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				sort_cloumn = new BasicDBObject();   // 排序字段
-				sort_cloumn.put("timeStamp", -1);
-				
-				cursor = trainItemOpusHomes.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				//记录是否存在
+		  		List<TrainItemOpusHome> trainItemOpusHomes = trainItemOpusHomeRepository.queryByUseFlag("1");
+				jsonarray = JSONArray.fromObject(trainItemOpusHomes.get(0));
 				returnTex = jsonarray.toString(); 
-			} 
-		} else if ("ItemUserInfo".equals(getType)) {
-			String funOpType = object.get("funOpType").toString(); 
-			DBCursor cursor ;
-			List<DBObject> list;
+			}
+		}else if ("ItemUserInfo".equals(getType)) {
+			String funOpType = object.get("funOpType").toString();
 			JSONArray jsonarray;
-			query = new BasicDBObject(); // 查询条件
-			query.put("reqOpenId", reqOpenId); 
-			BasicDBObject filter_cloumn = new BasicDBObject(); // 查询字段
-//			filter_cloumn.put("reqItemTimeId", 1);
-			filter_cloumn.put("_id", 0); // 不显示ID字段
-			filter_cloumn.put("avatarUrl", 0);
-
-			BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-			sort_cloumn.put("timeStamp", -1);
 			if ("setallow".equals(funOpType)) //发布留言信息
 			{  
 				String pubOpenId = object.get("pubOpenId").toString(); 
-				query = new BasicDBObject(); // 查询条件
-				query.put("OpenId", pubOpenId); 
-				
 				long queryCount = 0;
-				queryCount = smallusers.count(query);
+				queryCount = wxSmallUserRepository.findByOpenId(pubOpenId).size();
 				if (queryCount > 0 ) {
-					BasicDBObject update_object = new BasicDBObject();
-					BasicDBObject set_object = new BasicDBObject();
-					set_object.put("userOperType1", object.get("SaveDataInfo"));
-					update_object.put("$set", set_object);
-					smallusers.update(query, update_object, false,true); 
+					WxSmallUser wxSmallUser = wxSmallUserRepository.findByOpenId(pubOpenId).get(0);
+					wxSmallUser.setUserOperType1(object.get("SaveDataInfo").toString());
+					wxSmallUserRepository.save(wxSmallUser);
 				
 					//作品的留言、评论信息的处理
-					update_object = new BasicDBObject();
-					set_object = new BasicDBObject();
-					set_object.put("showallow", object.get("SaveDataInfo"));
-					  
-					update_object.put("$set", set_object);
-					trainItemOpusComments.update(query, update_object, false,true);
+					TrainItemOpusComment trainItemOpusComment = trainItemOpusCommentRepository.findByReqOpenId(pubOpenId).get(0);
+					trainItemOpusComment.setShowallow(object.get("SaveDataInfo").toString());
+					trainItemOpusCommentRepository.save(trainItemOpusComment);
 					
 				    //将已经发布的信息和评论信息设置为  禁言或者解禁状态
-					query = new BasicDBObject(); // 查询条件 
-					BasicDBList values = new BasicDBList(); 
-					values.add(new BasicDBObject("reqOpenId",pubOpenId));  //发布信息
-		 			values.add(new BasicDBObject("addOpenId",pubOpenId));  //评论信息
-		 			query.put("$or", values);
-		 			
-		 			update_object = new BasicDBObject();
-					set_object = new BasicDBObject();
-					set_object.put("showallow", object.get("SaveDataInfo"));
-					  
-					update_object.put("$set", set_object);
-					trainItemPublishs.update(query, update_object, false,true);
+					trainItemPublishRepository.updateByQuery(pubOpenId, pubOpenId, object.get("SaveDataInfo").toString());
 				}   
 			} else if ("setlvl".equals(funOpType)) { //支持下拉刷新获取后续信息
-				
 				String pubOpenId = object.get("pubOpenId").toString(); 
-				query = new BasicDBObject(); // 查询条件
-				query.put("OpenId", pubOpenId); 
 				
 				long queryCount = 0;
-				queryCount = smallusers.count(query);
+				queryCount = wxSmallUserRepository.findByOpenId(pubOpenId).size();;
 				if (queryCount > 0 ) {
-					BasicDBObject update_object = new BasicDBObject();
-					BasicDBObject set_object = new BasicDBObject();
-					set_object.put("userGroupType", object.get("SaveDataInfo"));
-					update_object.put("$set", set_object);
-					smallusers.update(query, update_object, false,true);
+					WxSmallUser wxSmallUser = wxSmallUserRepository.findByOpenId(pubOpenId).get(0);
+					wxSmallUser.setUserGroupType(object.get("SaveDataInfo").toString());
+					wxSmallUserRepository.save(wxSmallUser);
 				} 
 			}else if ("query".equals(funOpType)) { //支持下拉刷新获取后续信息
-				
-				query = new BasicDBObject(); // 查询条件
-				query.put("timeStamp", new BasicDBObject("$lt", object.get("queryDay"))); 
-				cursor = smallusers.find(query, filter_cloumn)
-						 .limit(10).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				List<WxSmallUser> wxSmallUsers = wxSmallUserRepository.queryByTimeStamp(object.get("queryDay").toString(), 10);
+				jsonarray = JSONArray.fromObject(wxSmallUsers);
 				returnTex = jsonarray.toString(); 
 			}else if ("queryaction".equals(funOpType)) { //支持下拉刷新获取后续信息 查询用户行为数据
+				List<WxSmallUserAction> wxSmallUserActions = wxSmallUserActionRepository.queryByTimeStamp(object.get("pubOpenId").toString(), object.get("queryDay").toString(), 20);
 				
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId",object.get("pubOpenId"));
-				query.put("timeStamp", new BasicDBObject("$lt", object.get("queryDay"))); 
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				cursor = wxsmalluseractions.find(query, filter_cloumn)
-						 .limit(20).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				jsonarray = JSONArray.fromObject(wxSmallUserActions);
 				returnTex = jsonarray.toString(); 
 			}
-		} else if ("ItemTimeQuery".equals(getType)) {
+		} 
+		/*else if ("ItemTimeQuery".equals(getType)) {
 			String funOpType = object.get("funOpType").toString();
 			String queryDay = object.get("queryDay").toString();
 
@@ -2519,4 +2372,60 @@ public class DataManageInfo {
 		} */
 		return returnTex;
 	}
+	
+	/**
+	 * 获取百度语音合成的Token
+	 * 
+	 * @param fromUser
+	 *            用户信息
+	 * 
+	 * @return 返回百度语音合成的Token
+	 */
+	public String getAccessTokenInfo(String fromUser)
+			throws UnknownHostException {
+
+		String returnTex = "OK";
+		
+
+        // 获取当日日期
+		Date now = new Date();
+		SimpleDateFormat dateFormat = new SimpleDateFormat(
+				"yyyy-MM-dd HH:mm:ss"); // 可以方便地修改日期格式
+		SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd"); // 可以方便地修改日期格式
+		String operDay = dayFormat.format(now);
+		SimpleDateFormat dayFormatId = new SimpleDateFormat("yyyyMMdd"); // 可以方便地修改日期格式
+		String operDayId = dayFormatId.format(now);
+
+		Calendar c = Calendar.getInstance();
+		c.setTime(now);
+		int day = c.get(Calendar.DATE);
+		c.set(Calendar.DATE, day - 27);
+		String overDayId = new SimpleDateFormat("yyyyMMdd").format(c.getTime());
+
+		 
+		// ----------------查询指定编码的唯一信息内容---------------------
+		long ingressIdCount = baiduTokenParaRepository.findByOperDayId("text2audio", overDayId).size();
+		if (ingressIdCount > 0) {
+			/* 存在记录获取信息 */
+			returnTex = baiduTokenParaRepository.findByOperDayId("text2audio", overDayId).get(0).getAccessToken().toString();
+		} else {
+			// 重新获取accessToken并记录到数据中再返回
+			String accessToken = baiduApiInfo.baidugettoken();
+
+			// 添加数据
+			BaiduTokenPara baiduTokenPara = new BaiduTokenPara();
+			baiduTokenPara.setOperDate(dateFormat.format(now).toString());
+			baiduTokenPara.setOperDay(operDay);
+			baiduTokenPara.setOperDayId(operDayId);
+			baiduTokenPara.setAccessToken(accessToken);
+			baiduTokenPara.setTokenPara("text2audio");
+			
+			baiduTokenParaRepository.save(baiduTokenPara);
+			returnTex = accessToken;
+		}
+		System.out.println(returnTex);
+ 
+		return returnTex;
+	}
+	
 }

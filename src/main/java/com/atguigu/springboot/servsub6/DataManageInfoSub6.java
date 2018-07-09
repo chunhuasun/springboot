@@ -1,4 +1,4 @@
-package com.atguigu.springboot.serv;
+package com.atguigu.springboot.servsub6;
 
 import java.io.IOException;
 import java.net.URL;
@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
+import javax.persistence.Column;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -22,6 +24,9 @@ import org.springframework.stereotype.Service;
 
 import sun.misc.BASE64Decoder;
    
+
+
+
 
 import com.atguigu.springboot.entity.BaiduTokenPara;
 import com.atguigu.springboot.entity.TenxunCosInfo;
@@ -63,12 +68,14 @@ import com.atguigu.springboot.repository.WxSmallServLockRepository;
 import com.atguigu.springboot.repository.WxSmallServLogRepository;
 import com.atguigu.springboot.repository.WxSmallUserActionRepository;
 import com.atguigu.springboot.repository.WxSmallUserRepository; 
+import com.atguigu.springboot.serv.ImageUtils;
 import com.atguigu.springboot.serv.baiduApiInfo;
+import com.atguigu.springboot.serv.tenxunApiCos;
 
  
 
 @Service
-public class DataManageInfo {
+public class DataManageInfoSub6 {
 	
 	@Autowired
 	private WxSmallUserRepository wxSmallUserRepository;
@@ -264,7 +271,10 @@ public class DataManageInfo {
 		tenxunCosInfo.setOperDate(operDay);
 		tenxunCosInfo.setOperDateId(operDayId);
 		tenxunCosInfo.setOperDateTime(operDayt);
-		
+		tenxunCosInfo.setCensorFlag("0");   //未进行图片审核
+		tenxunCosInfo.setImagePickFlag("0");  //未进行图片文字识别
+		tenxunCosInfo.setImageUseFlag("0");   //文件使用标示，0 未使用异步信息  1 同时使用审核和文字识别
+		    
 		tenxunCosInfoRepository.save(tenxunCosInfo);
 
         returnTex = Long.toString(ingressIdCount);
@@ -1608,12 +1618,15 @@ public class DataManageInfo {
 					jsonarray = JSONArray.fromObject(saveDataInfo); 
 			  		JSONObject jsonInfoOne = new JSONObject(); 
 			  		long reqItemTimeId = 0;
+			  		String cosUrl = "";
+			  		List<TenxunCosInfo> tenxunCosInfos;
+			  		TenxunCosInfo tenxunCosInfo ;
 			  		for(int i=0; i<jsonarray.size(); i++){ 
 			  			reqItemTimeId = trainItemOpusRepository.queryMaxReqItemTimeId();
 						reqItemTimeId += 1;
 						
 			  			jsonInfoOne = JSONObject.fromObject(jsonarray.get(i));  
-			  			
+			  			 
 			  			now = new Date();
 			  			timeStamp = timeStampmId.format(now);
 				  	    // 添加数据
@@ -1626,7 +1639,6 @@ public class DataManageInfo {
 						trainItemOpus.setTimeStamp(timeStamp);
 						 
 						trainItemOpus.setOpustitle(jsonInfoOne.get("opustitle").toString());     //标题
-						trainItemOpus.setOpusurl(jsonInfoOne.get("opusurl").toString());         //图片地址
 						trainItemOpus.setOpusauthor(jsonInfoOne.get("opusauthor").toString());   //作品人
 						trainItemOpus.setOpusdate(jsonInfoOne.get("opusdate").toString());       //作品日期
 						trainItemOpus.setOpusdepict(jsonInfoOne.get("opusdepict").toString());   //作品信息
@@ -1634,6 +1646,31 @@ public class DataManageInfo {
 						trainItemOpus.setQueryinfo(jsonInfoOne.get("opustitle").toString()+
 								                   jsonInfoOne.get("opusauthor").toString()+
 								                   jsonInfoOne.get("opusdepict").toString());    //搜索关键字
+						
+						cosUrl = jsonInfoOne.get("opusurl").toString();
+						trainItemOpus.setOpusurl(cosUrl);         //图片地址
+			  			
+						//查询图片的审核信息
+			  			tenxunCosInfos = tenxunCosInfoRepository.findByCosUrlInfo(cosUrl);
+			  			if(tenxunCosInfos.size()>0){
+			  				//存在数据修改信息
+			  				tenxunCosInfo = tenxunCosInfos.get(0);
+			  			    if("2".equals(tenxunCosInfo.getCensorFlag())){
+			  			    	//不合规的照片
+			  			    	trainItemOpus.setCensorInfo(tenxunCosInfo.getImageCensor());
+			  			    	trainItemOpus.setCensorUrl(cosUrl);
+			  			    	//提供固定的违规展示照片
+			  			    	cosUrl = "http://mycos-1253822284.coscd.myqcloud.com/otherFile/18no.jpg";
+			  			    	trainItemOpus.setOpusurl(cosUrl);
+			  			    }
+			  			    if("1".equals(tenxunCosInfo.getImagePickFlag())&&!"".equals(tenxunCosInfo.getImagePick())){
+			  			    	trainItemOpus.setQueryinfo(jsonInfoOne.get("opustitle").toString()+
+						                   jsonInfoOne.get("opusauthor").toString()+
+						                   jsonInfoOne.get("opusdepict").toString()+
+						                   tenxunCosInfo.getImagePick()
+						                   );
+			  			    }
+			  			}
 						
 						trainItemOpusRepository.save(trainItemOpus);
 			  		}

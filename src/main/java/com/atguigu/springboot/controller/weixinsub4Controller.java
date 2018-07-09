@@ -47,24 +47,24 @@ import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
 import com.atguigu.springboot.serv.tenxunApiCos;
-import com.atguigu.springboot.servsub6.DataManageInfoSub6;
-import com.atguigu.springboot.servsub6.SpringAsyncSub6;
+import com.atguigu.springboot.servsub4.DataManageInfoSub4;
+import com.atguigu.springboot.servsub4.SpringAsyncSub4;
 
 @RestController
-@RequestMapping("/sub6-stop")   //微信小程序  super画 画展  使用时候修改为  sub6 便于后台发布
-public class weixinsub6Controller {
+@RequestMapping("/sub4")  //微信小程序  私人训练园地  
+public class weixinsub4Controller {
     
 	public static String st_image_file_path ="";
 	public static String st_respMessage ="";
 	 
 	@Autowired
-	private DataManageInfoSub6 dataManageInfo;
+	private DataManageInfoSub4 dataManageInfo;
 	
 	@Autowired
-	private SpringAsyncSub6 springAsync;
+	private SpringAsyncSub4 springAsync;
 	 
 	// ---微信URL信息访问--返回小程序训练计划相关信息------------
-	@RequestMapping(value="/weixinsub6GetOpenId", method= RequestMethod.POST)
+	@RequestMapping(value="/weixinsub4GetOpenId", method= RequestMethod.POST)
     @ResponseBody
     public String wxGetOpenId(String requestInfo) throws UnknownHostException, NoSuchAlgorithmException {
       String response_info = "";
@@ -92,7 +92,7 @@ public class weixinsub6Controller {
     }
     
 	// ---微信URL信息访问--返回小程序训练计划相关信息------------
-	@RequestMapping(value="/weixinsub6TrainPlan", method= RequestMethod.POST)
+	@RequestMapping(value="/weixinsub4TrainPlan", method= RequestMethod.POST)
     @ResponseBody
     public String wxTrainPlanInfo(String requestInfo) throws UnknownHostException, NoSuchAlgorithmException {
       String response_info = "";
@@ -137,7 +137,7 @@ public class weixinsub6Controller {
     }
 	
 	// ---微信URL信息访问--返回小程序训练计划相关信息------------
-	@RequestMapping(value="/weixinsub6GetBaiduToken", method= RequestMethod.POST)
+	@RequestMapping(value="/weixinsub4GetBaiduToken", method= RequestMethod.POST)
     @ResponseBody
     public String wxGetBaiduToken(String requestInfo) throws UnknownHostException, NoSuchAlgorithmException {
       String response_info = "";
@@ -156,7 +156,7 @@ public class weixinsub6Controller {
     }
 	
 	/*保存信息 --微信小程序上传文件保存 --直接保存并返回保存的地址信息*/
-	@RequestMapping(value="/weixinsub6FileSaveCos",method = RequestMethod.POST)
+	@RequestMapping(value="/weixinsub4FileSaveCos",method = RequestMethod.POST)
 	@ResponseBody
 	public String wxFileSaveCos(@RequestParam("fromUser") String fromUser ,@RequestParam("tcontent") String tcontent ,
 			@RequestParam("send_file") MultipartFile file){

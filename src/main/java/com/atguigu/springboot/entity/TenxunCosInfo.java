@@ -35,6 +35,22 @@ public class TenxunCosInfo {
     
     @Column //省略默认列名就是属性名
     private String operDateTime;
+    
+    @Column //省略默认列名就是属性名
+    private String imageCensor;
+    
+    @Column //省略默认列名就是属性名
+    private String censorFlag;
+    
+    @Column //省略默认列名就是属性名
+    private String imagePick;
+    
+    @Column //省略默认列名就是属性名
+    private String imagePickFlag;
+    
+    @Column //省略默认列名就是属性名
+    private String imageUseFlag;
+    
 
 	public Integer getId() {
 		return Id;
@@ -108,13 +124,56 @@ public class TenxunCosInfo {
 		this.operDateTime = operDateTime;
 	}
 
+	public String getCensorFlag() {
+		return censorFlag;
+	}
+
+	public void setCensorFlag(String censorFlag) {
+		this.censorFlag = censorFlag;
+	}
+ 
+	public String getImageUseFlag() {
+		return imageUseFlag;
+	}
+
+	public void setImageUseFlag(String imageUseFlag) {
+		this.imageUseFlag = imageUseFlag;
+	}
+
+	public String getImageCensor() {
+		return imageCensor;
+	}
+
+	public void setImageCensor(String imageCensor) {
+		this.imageCensor = imageCensor;
+	}
+	 
+	public String getImagePick() {
+		return imagePick;
+	}
+
+	public void setImagePick(String imagePick) {
+		this.imagePick = imagePick;
+	}
+
+	public String getImagePickFlag() {
+		return imagePickFlag;
+	}
+
+	public void setImagePickFlag(String imagePickFlag) {
+		this.imagePickFlag = imagePickFlag;
+	}
+
 	@Override
 	public String toString() {
 		return "TenxunCosInfo [Id=" + Id + ", fromUser=" + fromUser
 				+ ", cosInfo=" + cosInfo + ", cosSize=" + cosSize
 				+ ", cosUrlInfo=" + cosUrlInfo + ", ingressId=" + ingressId
 				+ ", operDate=" + operDate + ", operDateId=" + operDateId
-				+ ", operDateTime=" + operDateTime + "]";
+				+ ", operDateTime=" + operDateTime + ", imageCensor="
+				+ imageCensor + ", censorFlag=" + censorFlag + ", imagePick="
+				+ imagePick + ", imagePickFlag=" + imagePickFlag
+				+ ", imageUseFlag=" + imageUseFlag + "]";
 	}
  	  
 }

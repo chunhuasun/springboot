@@ -48,6 +48,12 @@ public class TrainItemOpus {
     @Column //省略默认列名就是属性名
     private String queryinfo;
 
+    @Column //省略默认列名就是属性名
+    private String censorUrl;
+    
+    @Column //省略默认列名就是属性名
+    private String censorInfo;
+    
 	public Integer getId() {
 		return Id;
 	}
@@ -152,6 +158,22 @@ public class TrainItemOpus {
 		this.queryinfo = queryinfo;
 	}
 
+	public String getCensorUrl() {
+		return censorUrl;
+	}
+
+	public void setCensorUrl(String censorUrl) {
+		this.censorUrl = censorUrl;
+	}
+
+	public String getCensorInfo() {
+		return censorInfo;
+	}
+
+	public void setCensorInfo(String censorInfo) {
+		this.censorInfo = censorInfo;
+	}
+
 	@Override
 	public String toString() {
 		return "TrainItemOpus [Id=" + Id + ", reqOpenId=" + reqOpenId
@@ -160,7 +182,8 @@ public class TrainItemOpus {
 				+ timeStamp + ", opustitle=" + opustitle + ", opusurl="
 				+ opusurl + ", opusauthor=" + opusauthor + ", opusdate="
 				+ opusdate + ", opusdepict=" + opusdepict + ", opustype="
-				+ opustype + ", queryinfo=" + queryinfo + "]";
+				+ opustype + ", queryinfo=" + queryinfo + ", censorUrl="
+				+ censorUrl + ", censorInfo=" + censorInfo + "]";
 	}
      
 }

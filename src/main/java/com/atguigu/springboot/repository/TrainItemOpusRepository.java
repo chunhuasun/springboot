@@ -22,6 +22,9 @@ public interface TrainItemOpusRepository extends JpaRepository<TrainItemOpus,Int
 	
 	@Query(value = "select max(req_item_time_id) from train_item_opus ", nativeQuery = true)
 	long queryMaxReqItemTimeId();
+	
+	@Query(value = "select * from train_item_opus where opusurl = :opusurl order by time_stamp desc ", nativeQuery = true)
+	List<TrainItemOpus> queryByOpusurl(@Param("opusurl")String opusurl);
 }
 
 

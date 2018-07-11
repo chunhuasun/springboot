@@ -156,9 +156,9 @@ public class weixinsub4Controller {
     }
 	
 	/*保存信息 --微信小程序上传文件保存 --直接保存并返回保存的地址信息*/
-	@RequestMapping(value="/weixinsub4FileSaveCos",method = RequestMethod.POST)
+	@RequestMapping(value="/weixinsub4FileSaveCosAsync",method = RequestMethod.POST)
 	@ResponseBody
-	public String wxFileSaveCos(@RequestParam("fromUser") String fromUser ,@RequestParam("tcontent") String tcontent ,
+	public String wxFileSaveCosAsync(@RequestParam("fromUser") String fromUser ,@RequestParam("tcontent") String tcontent ,
 			@RequestParam("send_file") MultipartFile file){
 		
 		  
@@ -272,6 +272,105 @@ public class weixinsub4Controller {
 	   		}
 			st_respMessage = image_text;
 	    } catch (Exception e) {
+	        image_text = "e error";
+	        return image_text; 
+	    } 
+        return image_text; 
+    }  
+	
+	
+	/*保存信息 --微信小程序上传文件保存 --直接保存并返回保存的地址信息*/
+	@RequestMapping(value="/weixinsub4FileSaveCos",method = RequestMethod.POST)
+	@ResponseBody
+	public String wxFileSaveCos(@RequestParam("fromUser") String fromUser ,@RequestParam("tcontent") String tcontent ,
+			@RequestParam("send_file") MultipartFile file){
+		
+		String cos_url = "cosUrlInfo";
+		String image_text = "wxTenXunCosSend";
+		String cos_size = "";
+		String serv_limit = "";
+		String funOpType = "";
+		String sendImageInfo= ""; 
+		JSONObject object = null;
+		JSONObject jsonResult = new JSONObject(); 
+		try {
+			
+			//增加权限控制，限制不同等级的用户图片的处理次数
+			if("baiduocrAPi".equals(tcontent)||"baiduopusAPi".equals(tcontent)){
+	    		funOpType = "imageOcr";
+	    	}else{
+	    		funOpType = "imageSave";
+	    	}
+			serv_limit = dataManageInfo.getTrainUserServLimit(fromUser,funOpType);
+    	    
+			object = JSONObject.fromObject(serv_limit);
+	    	String EndFlag = object.get("EndFlag").toString();
+	  		    
+	   		if("1".equals(EndFlag)){
+		    	jsonResult.put("opertype", "1");
+		    	jsonResult.put("operinfo", object.get("ServInfo").toString());
+	   			image_text = jsonResult.toString();
+	   		}else{
+	   			jsonResult.put("opertype", "0");
+	   			
+		    	String sendPathName= "";
+		    	String saveFileName= "000001";
+		    	
+		    	Date now = new Date();
+				SimpleDateFormat dayFormatId = new SimpleDateFormat("yyyyMMddHHmmss"); // 可以方便地修改日期格式
+				saveFileName = dayFormatId.format(now);
+				System.out.println("saveFileName:"+saveFileName);
+		    	if (!file.isEmpty()) {
+		    	 	sendPathName = file.getOriginalFilename();//
+		    	 	saveFileName += sendPathName.substring(sendPathName.length()-6);  //从后向前取6位
+		    	 	
+		    	 	double length = (double)file.getSize();	
+		    	 	cos_size = Math.ceil(length/1024/1024*100)/100+"M";
+		    	} 
+		    	byte[] sendFileBufer = file.getBytes(); 
+		    	
+		    	//1、存储图片
+		    	if("baiduocrAPi".equals(tcontent)){
+					//只解析图片文字信息不存储图片
+	            	saveFileName = "trainPlan/ocrFile/"+saveFileName;
+		    	}else if("baiduopusAPi".equals(tcontent)){
+					//解析图片文字信息并存储图片信息
+	            	saveFileName = "trainPlan/opusFile/"+saveFileName;
+		    	}else{
+					//先存储上传信息  在线程中处理文件COS存储，存储完成后再修改 数据信息，传入COS文件编号
+			    	saveFileName = "trainPlan/uploadFile/"+saveFileName;
+		    	}
+		    	cos_url = tenxunApiCos.sendFileCosBufer(sendFileBufer,saveFileName);
+		    	object=JSONObject.fromObject(cos_url);
+				cos_url = object.get("data").toString(); 
+				object=JSONObject.fromObject(cos_url);
+				cos_url = object.get("access_url").toString();
+				
+		    	//2、对图片进行图像审核
+				image_text = baiduApiImageCensor.imageCensor(cos_url);
+				if(!"合规".equals(image_text)){
+					jsonResult.put("opertype", "1");
+			    	jsonResult.put("operinfo", image_text);
+		   			image_text = jsonResult.toString();
+		   			return image_text; 
+				}
+				
+				jsonResult.put("cos_url", cos_url);
+		    	//3、对图片进行文字识别
+				BASE64Encoder encoder = new BASE64Encoder();
+				sendImageInfo = encoder.encode(sendFileBufer); 
+			    image_text = baiduApiInfo.baiduocrAPiBase64(sendImageInfo);
+		    	
+			    //4、存储图片地址信息
+			    if(!"baiduocrAPi".equals(tcontent)&&!"baiduopusAPi".equals(tcontent)){
+			    	image_text = dataManageInfo.savetxCOSData(fromUser,tcontent,cos_url,cos_size);
+					image_text = cos_url;
+			    }
+                jsonResult.put("operinfo", image_text);
+   			    image_text = jsonResult.toString();
+			}
+			st_respMessage = image_text;
+		} catch (Exception e) {
 	        image_text = "e error";
 	        return image_text; 
 	    } 

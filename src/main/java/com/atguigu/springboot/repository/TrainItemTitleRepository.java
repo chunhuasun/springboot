@@ -19,7 +19,7 @@ public interface TrainItemTitleRepository extends JpaRepository<TrainItemTitle,I
 	@Query(value = "select count(*) from train_item_title where req_open_id = :reqOpenId and title_info = :titleInfo and title_type = '4' ", nativeQuery = true)
 	long countByReqOpenIdAndTitleInfo(@Param("reqOpenId") String reqOpenId,@Param("titleInfo") String titleInfo);
 	
-	@Query(value = "select * from train_item_title where req_open_id = :reqOpenId and title_type = '4' order by req_item_time_id desc limit :limitCount ", nativeQuery = true)
+	@Query(value = "select * from train_item_title where req_open_id = :reqOpenId and title_type = '4' order by title_used desc limit :limitCount ", nativeQuery = true)
 	List<TrainItemTitle> queryByReqOpenId(@Param("reqOpenId") String reqOpenId,@Param("limitCount") Integer limitCount);
 	
 	@Transactional

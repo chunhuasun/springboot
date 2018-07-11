@@ -1277,9 +1277,11 @@ public class DataManageInfoSub4 {
 			  		List<TenxunCosInfo> tenxunCosInfos;
 			  		TenxunCosInfo tenxunCosInfo ;
 			  		for(int i=0; i<jsonarray.size(); i++){ 
-			  			reqItemTimeId = trainItemOpusRepository.queryMaxReqItemTimeId();
-						reqItemTimeId += 1;
-						
+			  			if(trainItemOpusRepository.count()>0){
+			  				reqItemTimeId = trainItemOpusRepository.queryMaxReqItemTimeId();
+						}
+			  			reqItemTimeId += 1;
+			  			
 			  			jsonInfoOne = JSONObject.fromObject(jsonarray.get(i));  
 			  			 
 			  			now = new Date();

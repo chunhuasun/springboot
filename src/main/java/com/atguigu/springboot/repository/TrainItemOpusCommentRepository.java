@@ -24,6 +24,9 @@ public interface TrainItemOpusCommentRepository extends JpaRepository<TrainItemO
 			+ " order by req_item_time_id desc,pub_flag asc,time_stamp desc limit :limitCount", nativeQuery = true)
 	List<TrainItemOpusComment> queryByOpustimeStampPubFlag(@Param("opustimeStamp")String opustimeStamp,@Param("pubFlag")String pubFlag,@Param("limitCount") Integer limitCount);
 
+	@Query(value = "select max(req_item_time_id) from train_item_opus_comment where opustime_stamp = :opustimeStamp and pub_flag = :pubFlag" , nativeQuery = true)
+	long queryByMaxOpustimeStampPubFlag(@Param("opustimeStamp")String opustimeStamp,@Param("pubFlag")String pubFlag);
+
 	@Query(value = "select * from train_item_opus_comment where opustime_stamp = :opustimeStamp and time_stamp = :timeStamp and pub_flag = :pubFlag"
 			+ " order by req_item_time_id desc,pub_flag asc,time_stamp desc limit :limitCount", nativeQuery = true)
 	List<TrainItemOpusComment> queryBytimeStampPubFlag(@Param("opustimeStamp")String opustimeStamp,@Param("timeStamp")String timeStamp,@Param("pubFlag")String pubFlag,@Param("limitCount") Integer limitCount);

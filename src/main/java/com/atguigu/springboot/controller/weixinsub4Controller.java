@@ -47,8 +47,8 @@ import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
 import com.atguigu.springboot.serv.tenxunApiCos;
-import com.atguigu.springboot.servsub4.DataManageInfoSub4;
-import com.atguigu.springboot.servsub4.SpringAsyncSub4;
+import com.atguigu.springboot.serv.sub4.DataManageInfoSub4;
+import com.atguigu.springboot.serv.sub4.SpringAsyncSub4;
 
 @RestController
 @RequestMapping("/sub4")  //微信小程序  私人训练园地  
@@ -75,9 +75,9 @@ public class weixinsub4Controller {
     	  //System.out.println("OpenId---"+wxSmallUserRepository.count());
     	  
     	  JSONObject object = JSONObject.fromObject(requestInfo);
-    	  String appid = "wxe2c4e699f98185bf";
-  		  String secret = "26115dae571e3128f4c696f4863fde10";
-  		  String js_code = object.get("js_code").toString();
+    	  String appid = "wxc7e7b6ebc0de4528";
+ 		  String secret = "2692b8370b06836721a86328186b6312";
+ 		  String js_code = object.get("js_code").toString();
   		  // 获取用户 OpenId
   		  String OpenId = baiduApiInfo.wxsmallgetopenid(appid, secret, js_code);
   		  
@@ -277,5 +277,23 @@ public class weixinsub4Controller {
 	    } 
         return image_text; 
     }  
+	
+	// ---微信URL信息访问--返回图片文字识别结果------------
+	@RequestMapping(value="/weixinsub4FileCosOcr", method= RequestMethod.POST)
+    @ResponseBody
+    public String wxFileCosOcr(String requestInfo) throws UnknownHostException, NoSuchAlgorithmException {
+      String response_info = "";
+      
+      JSONObject object = null;
+	  object = JSONObject.fromObject(requestInfo);
+	  String cos_url = object.get("cosUrl").toString();
+      try {
+    	  response_info = baiduApiInfo.baiduocrAPiurl(cos_url);
+          st_respMessage = response_info; 
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+      return response_info;
+    }
     
 }

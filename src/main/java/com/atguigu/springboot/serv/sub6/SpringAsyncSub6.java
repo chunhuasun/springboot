@@ -1,4 +1,4 @@
-package com.atguigu.springboot.servsub6;
+package com.atguigu.springboot.serv.sub6;
 
 import java.net.UnknownHostException;
 
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.atguigu.springboot.serv.baiduApiImageCensor;
 import com.atguigu.springboot.serv.baiduApiInfo;
-import com.atguigu.springboot.servsub4.ImageDataManageInfoSub4;
+import com.atguigu.springboot.serv.sub6.ImageDataManageInfoSub6;
 
 @Component
 public class SpringAsyncSub6 {

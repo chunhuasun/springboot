@@ -47,11 +47,11 @@ import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
 import com.atguigu.springboot.serv.tenxunApiCos;
-import com.atguigu.springboot.servsub6.DataManageInfoSub6;
-import com.atguigu.springboot.servsub6.SpringAsyncSub6;
+import com.atguigu.springboot.serv.sub6.DataManageInfoSub6;
+import com.atguigu.springboot.serv.sub6.SpringAsyncSub6;
 
-@RestController
-@RequestMapping("/sub6-stop")   //微信小程序  super画 画展  使用时候修改为  sub6 便于后台发布
+//@RestController
+@RequestMapping("/sub6")   //微信小程序  super画 画展  使用时候修改为  取消 @RestController 的屏蔽
 public class weixinsub6Controller {
     
 	public static String st_image_file_path ="";

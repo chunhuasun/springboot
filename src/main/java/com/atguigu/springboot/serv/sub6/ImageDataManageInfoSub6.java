@@ -1,4 +1,4 @@
-package com.atguigu.springboot.servsub6;
+package com.atguigu.springboot.serv.sub6;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.atguigu.springboot.servsub4;
+package com.atguigu.springboot.serv.sub6;
 
 import java.io.IOException;
 import java.net.URL;
@@ -75,7 +75,7 @@ import com.atguigu.springboot.serv.tenxunApiCos;
  
 
 @Service
-public class DataManageInfoSub4 {
+public class DataManageInfoSub6 {
 	
 	@Autowired
 	private WxSmallUserRepository wxSmallUserRepository;
@@ -591,7 +591,7 @@ public class DataManageInfoSub4 {
 			String saveDataInfo = object.get("SaveDataInfo").toString();
 			object = JSONObject.fromObject(saveDataInfo);
  
-			List<TrainItemTimeInfo> trainItemTimeInfos = trainItemTimeInfoRepository.findByReqOpenIdAndOperDayId(reqOpenId,operDayId);
+			List<TrainItemTimeInfo> trainItemTimeInfos = trainItemTimeInfoRepository.findByReqOpenIdAndOperDayId(reqOpenId,operDayId,1);
 			 
 			long reqItemTimeId = 0;
 			if (trainItemTimeInfos.size() > 0) {

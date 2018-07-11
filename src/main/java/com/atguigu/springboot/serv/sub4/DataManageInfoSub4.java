@@ -1,9 +1,10 @@
-package com.atguigu.springboot.servsub6;
+package com.atguigu.springboot.serv.sub4;
 
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,18 +25,25 @@ import org.springframework.stereotype.Service;
 
 import sun.misc.BASE64Decoder;
    
-
-
-
-
+ 
 import com.atguigu.springboot.entity.BaiduTokenPara;
 import com.atguigu.springboot.entity.TenxunCosInfo;
+import com.atguigu.springboot.entity.TrainDictationInfo;
+import com.atguigu.springboot.entity.TrainDictationWord;
+import com.atguigu.springboot.entity.TrainItemAngle;
 import com.atguigu.springboot.entity.TrainItemInfo;
+import com.atguigu.springboot.entity.TrainItemKnowledge;
+import com.atguigu.springboot.entity.TrainItemMusictimer;
 import com.atguigu.springboot.entity.TrainItemOpus;
 import com.atguigu.springboot.entity.TrainItemOpusComment;
 import com.atguigu.springboot.entity.TrainItemOpusHome;
+import com.atguigu.springboot.entity.TrainItemPublish;
 import com.atguigu.springboot.entity.TrainItemSaveInfo;
+import com.atguigu.springboot.entity.TrainItemTask;
+import com.atguigu.springboot.entity.TrainItemTaskComment;
+import com.atguigu.springboot.entity.TrainItemTimeAngle;
 import com.atguigu.springboot.entity.TrainItemTimeInfo;
+import com.atguigu.springboot.entity.TrainItemTitle;
 import com.atguigu.springboot.entity.TrainPlanInfo;
 import com.atguigu.springboot.entity.WxSmallLogin;
 import com.atguigu.springboot.entity.WxSmallServInfo;
@@ -75,7 +83,7 @@ import com.atguigu.springboot.serv.tenxunApiCos;
  
 
 @Service
-public class DataManageInfoSub6 {
+public class DataManageInfoSub4 {
 	
 	@Autowired
 	private WxSmallUserRepository wxSmallUserRepository;
@@ -172,7 +180,8 @@ public class DataManageInfoSub6 {
 			wxSmallUser.setGender(object.get("gender").toString());
 			wxSmallUser.setNickName(object.get("nickName").toString());
 			wxSmallUser.setProvince(object.get("province").toString());
-			wxSmallUser.setAvatarUrl(imageInfo);
+			//wxSmallUser.setAvatarUrl(imageInfo);
+			wxSmallUser.setAvatarUrl(cos_url);
 			wxSmallUser.setCosUrl(cos_url);
 			wxSmallUser.setUserGroupType("Lvl0");
 			wxSmallUser.setUserCareDate(oper_info_date);
@@ -247,8 +256,6 @@ public class DataManageInfoSub6 {
 		 
 		// 获取当日日期
 		Date now = new Date();
-		SimpleDateFormat dateFormat = new SimpleDateFormat(
-				"yyyy-MM-dd HH:mm:ss"); // 可以方便地修改日期格式
 		SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd"); // 可以方便地修改日期格式
 		String operDay = dayFormat.format(now);
 		SimpleDateFormat dayFormatId = new SimpleDateFormat("yyyyMMdd"); // 可以方便地修改日期格式
@@ -388,12 +395,9 @@ public class DataManageInfoSub6 {
 		System.out.println(operDay);
 
 		  
-		// 解析查询条件
-		JSONObject object = null;
 		//获取用户权限等级
 		long queryCount = 0;
 		long useServTimes = 0;
-		long count = 0;
 		List<WxSmallServInfo> wxSmallServInfos;
 		List<WxSmallServLog> wxSmallServLogs;
 		
@@ -411,7 +415,6 @@ public class DataManageInfoSub6 {
 		if ("getObtain".equals(funOpType)) {
 			jsonServOne.element("EndFlag", "1");  
 			 
-			PageRequest pr = new PageRequest(0, 40);
 			wxSmallServInfos = wxSmallServInfoRepository.findByUserGroupTypeAndUserServTypeAndUseEffFlag(userGroupType, funOpType, "1");
 
 			// 把结果集输出成list类型
@@ -591,7 +594,7 @@ public class DataManageInfoSub6 {
 			String saveDataInfo = object.get("SaveDataInfo").toString();
 			object = JSONObject.fromObject(saveDataInfo);
  
-			List<TrainItemTimeInfo> trainItemTimeInfos = trainItemTimeInfoRepository.findByReqOpenIdAndOperDayId(reqOpenId,operDayId);
+			List<TrainItemTimeInfo> trainItemTimeInfos = trainItemTimeInfoRepository.findByReqOpenIdAndOperDayId(reqOpenId,operDayId,1);
 			 
 			long reqItemTimeId = 0;
 			if (trainItemTimeInfos.size() > 0) {
@@ -830,430 +833,246 @@ public class DataManageInfoSub6 {
 					}
 				}
 			}*/
-		} 
-		/*
-		else if ("ItemKnowledge".equals(getType)) {
+		}else if ("ItemKnowledge".equals(getType)) {
 			String funOpType = object.get("funOpType").toString(); 
 			JSONArray jsonarray;
-			DBCursor cursor ;
-			List<DBObject> list;
-
-			query = new BasicDBObject(); // 查询条件
-			query.put("reqOpenId", reqOpenId);
-
-			BasicDBObject filter_cloumn = new BasicDBObject(); // 查询字段
-//			filter_cloumn.put("reqItemTimeId", 1);
-			filter_cloumn.put("_id", 0); // 不显示ID字段
-
-			BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-			sort_cloumn.put("reqItemTimeId", -1); 
-
+			List<TrainItemKnowledge> trainItemKnowledges;
+			TrainItemKnowledge trainItemKnowledge;
+			TrainItemTitle trainItemTitle;
+			List<TrainItemTitle> trainItemTitles;
+			long count = 0 ;
+			
 			if ("new".equals(funOpType))
 			{
 				String saveDataInfo = object.get("SaveDataInfo").toString();
 				object = JSONObject.fromObject(saveDataInfo);
 				
-				
-				cursor = trainItemKnowledges.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn);
-
-				// 把结果集输出成list类型
-				list = cursor.toArray();
+				trainItemKnowledges = trainItemKnowledgeRepository.findByReqOpenId(reqOpenId, 1);
 				long reqItemTimeId = 0;
-				if (list.size() > 0) {
-					reqItemTimeId = (Long) list.get(0).get("reqItemTimeId") + 1;
+				if (trainItemKnowledges.size() > 0) {
+					reqItemTimeId = trainItemKnowledges.get(0).getReqItemTimeId() + 1;
 				} else {
 					reqItemTimeId = 1;
 				}
 				
 				// 添加数据
-				DBObject userServInfo = new BasicDBObject();
-				userServInfo.put("reqOpenId", reqOpenId);
-				userServInfo.put("operDayId", operDayId);
-				userServInfo.put("operDay", operDay);
-				userServInfo.put("reqItemTimeId", reqItemTimeId);
-
-				userServInfo.put("itemTitle", object.get("itemTitle"));
-				userServInfo.put("itemtitletype", object.get("itemtitletype"));
-				userServInfo.put("itemInfo", object.get("itemInfo"));
-				userServInfo.put("itemaddinfo", object.get("itemaddinfo"));
-				userServInfo.put("cosimageurls", object.get("cosimageurls"));
-
-				userServInfo.put("recordType", "");
-				userServInfo.put("recordItem1", ""); // 备用字段
-				userServInfo.put("recordItem2", ""); // 备用字段
-				userServInfo.put("recordItem3", ""); // 备用字段
-
-				long count = trainItemKnowledges.save(userServInfo).getN();
+				trainItemKnowledge = new TrainItemKnowledge();
+ 
+				trainItemKnowledge.setReqOpenId(reqOpenId);
+				trainItemKnowledge.setOperDayId(operDayId);
+				trainItemKnowledge.setOperDay(operDay);
+				trainItemKnowledge.setReqItemTimeId(reqItemTimeId);
+				trainItemKnowledge.setItemTitle(object.get("itemTitle").toString());
+				trainItemKnowledge.setItemtitletype(object.get("itemtitletype").toString());
+				trainItemKnowledge.setItemInfo(object.get("itemInfo").toString());
+				trainItemKnowledge.setItemaddinfo(object.get("itemaddinfo").toString());
+				trainItemKnowledge.setCosimageurls(object.get("cosimageurls").toString());
 				
-				更新标题大类信息
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", reqOpenId);
-				count = trainItemTitles.count(query);
+				trainItemKnowledgeRepository.save(trainItemKnowledge); 
+				
+				//更新标题大类信息
+				count = trainItemTitleRepository.countByReqOpenId(reqOpenId);
 				
 				long titleId = count+1;
-				query.put("titleInfo", object.get("itemtitletype"));
-				query.put("titleType", "4");
-				count = trainItemTitles.count(query);
+				
+				count = trainItemTitleRepository.countByReqOpenIdAndTitleInfo(reqOpenId, object.get("itemtitletype").toString());
 				if(count>0){
-					存在标题增加使用次数
-					BasicDBObject update_object = new BasicDBObject();
-					BasicDBObject set_object = new BasicDBObject();
-					set_object.put("titleUsed", 1); 
-					update_object.put("$inc", set_object);
-					trainItemTitles.update(query, update_object, false, true);
+					//存在标题增加使用次数
+					trainItemTitleRepository.updateByReqOpenIdAndTitleInfo(reqOpenId, object.get("itemtitletype").toString());
 				}else{
-					不存在标题，增加标题
-					userServInfo = new BasicDBObject();
-					userServInfo.put("reqOpenId", reqOpenId);
-					userServInfo.put("titleId", titleId);
-					userServInfo.put("titleInfo", object.get("itemtitletype"));
-					userServInfo.put("titleType", "4");
-					userServInfo.put("titleTypeName","知识点");
-					userServInfo.put("titleUsed", 1); 
-					count = trainItemTitles.save(userServInfo).getN(); 
+					//不存在标题，增加标题
+					trainItemTitle = new TrainItemTitle();
+ 
+					trainItemTitle.setReqOpenId(reqOpenId);
+					trainItemTitle.setTitleId(titleId);
+					trainItemTitle.setTitleInfo(object.get("itemtitletype").toString());
+					trainItemTitle.setTitleType("4");
+					trainItemTitle.setTitleTypeName("知识点");
+					trainItemTitle.setTitleUsed(1); 
+					
+					trainItemTitleRepository.save(trainItemTitle); 
 				} 
 			} else if ("queryList".equals(funOpType)) {
-				查询类别的记录数
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", reqOpenId);
-				query.put("titleType", "4");
-				 
-				cursor = trainItemTitles.find(query, filter_cloumn)
-						.limit(40).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				//查询类别的记录数
+				trainItemTitles = trainItemTitleRepository.queryByReqOpenId(reqOpenId, 40);
+				jsonarray = JSONArray.fromObject(trainItemTitles);
 				returnTex = jsonarray.toString();
-				
+			
 			}else if ("queryByType".equals(funOpType)) {
 				String itemtitletype = object.get("itemtype").toString();
-				按照类别查询知识条目
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", reqOpenId);
-				query.put("itemtitletype", itemtitletype);
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("operDay", 1);
-				filter_cloumn.put("reqItemTimeId", 1);
-				filter_cloumn.put("itemTitle", 1);
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				cursor = trainItemKnowledges.find(query, filter_cloumn)
-						.limit(40).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				//按照类别查询知识条目
+				trainItemKnowledges = trainItemKnowledgeRepository.findByReqOpenIdAndtitletype(reqOpenId, itemtitletype, 40);
+				jsonarray = JSONArray.fromObject(trainItemKnowledges);
 				returnTex = jsonarray.toString();
 			}else if ("queryBySearch".equals(funOpType)) {
 				String itemtitletype = object.get("itemtype").toString();
-				按照类别查询知识条目
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", reqOpenId);
-				
-				// 文件检索直接匹配文字即可
-				Pattern pattern = Pattern.compile("^.*" + itemtitletype + ".*$", Pattern.CASE_INSENSITIVE);
-				query.put("itemTitle", pattern); // 模糊查询处理
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("operDay", 1);
-				filter_cloumn.put("reqItemTimeId", 1);
-				filter_cloumn.put("itemTitle", 1);
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				cursor = trainItemKnowledges.find(query, filter_cloumn)
-						.limit(40).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				//按照类别查询知识条目
+				trainItemKnowledges = trainItemKnowledgeRepository.findByReqOpenIdAndItemTitle(reqOpenId, itemtitletype, 40);
+				jsonarray = JSONArray.fromObject(trainItemKnowledges);
 				returnTex = jsonarray.toString();
 			}else if ("byid".equals(funOpType)) {
 				String itemTimeId = object.get("itemTimeId").toString();
-				按照类别查询知识条目
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", reqOpenId);
-				query.put("reqItemTimeId", Integer.parseInt(itemTimeId)); // 模糊查询处理
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-//				filter_cloumn.put("operDay", 1);
-//				filter_cloumn.put("reqItemTimeId", 1);
-//				filter_cloumn.put("itemTitle", 1);
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				cursor = trainItemKnowledges.find(query, filter_cloumn)
-						.limit(40).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				//按照类别查询知识条目
+				trainItemKnowledges = trainItemKnowledgeRepository.findByReqOpenIdAndItemId(reqOpenId, Long.parseLong(itemTimeId), 40);
+				jsonarray = JSONArray.fromObject(trainItemKnowledges);
 				returnTex = jsonarray.toString();
 			}
 		} else if ("ItemTask".equals(getType)) {
 				String funOpType = object.get("funOpType").toString(); 
 				JSONArray jsonarray;
-				DBCursor cursor ;
-				List<DBObject> list;
-				List<DBObject> listDb;
 				JSONArray jsonTaskAarr = new JSONArray();
 				JSONObject jsonTaskOne = new JSONObject();
-				
-
-				query = new BasicDBObject(); // 查询条件
-				//query.put("reqOpenId", reqOpenId);
-
-				BasicDBObject filter_cloumn = new BasicDBObject(); // 查询字段
-//				filter_cloumn.put("reqItemTimeId", 1);
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-
-				BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-				sort_cloumn.put("reqItemTimeId", -1); 
+				TrainItemTask trainItemTask; 
+				List<TrainItemTask> trainItemTasks;
+				WxSmallUser wxSmallUser;
+				TrainItemTaskComment trainItemTaskComment;
+				List<TrainItemOpusComment> trainItemOpusComments;
 
 				if ("new".equals(funOpType))
 				{
 					String saveDataInfo = object.get("SaveDataInfo").toString();
 					object = JSONObject.fromObject(saveDataInfo); 
 					
-					cursor = trainItemTasks.find(query, filter_cloumn)
-							.limit(1).sort(sort_cloumn);
-					// 把结果集输出成list类型
-					list = cursor.toArray();
 					long reqItemTimeId = 0;
-					if (list.size() > 0) {
-						reqItemTimeId = (Long) list.get(0).get("reqItemTimeId") + 1;
-					} else {
-						reqItemTimeId = 1;
-					}
+					reqItemTimeId = trainItemTaskRepository.findMaxReqItemTimeId()+1;
 					
 					// 添加数据
-					DBObject userServInfo = new BasicDBObject();
-					userServInfo.put("reqOpenId", reqOpenId);
-					userServInfo.put("operDayId", operDayId);
-					userServInfo.put("operDay", operDay);
-					userServInfo.put("reqItemTimeId", reqItemTimeId);
-					userServInfo.put("timeStamp", timeStamp);
-
-					userServInfo.put("itemTitle", object.get("itemTitle"));
-					userServInfo.put("itemtitletype", object.get("itemtitletype"));
-					userServInfo.put("itemInfo", object.get("itemInfo"));
-					userServInfo.put("itemaddinfo", object.get("itemaddinfo"));
-					userServInfo.put("cosimageurls", object.get("cosimageurls"));
+					trainItemTask = new TrainItemTask(); 
+                    
+					trainItemTask.setReqOpenId(reqOpenId);
+					trainItemTask.setOperDayId(operDayId);
+					trainItemTask.setOperDay(operDay);
+					trainItemTask.setReqItemTimeId(reqItemTimeId);
+					trainItemTask.setTimeStamp(timeStamp);
+					trainItemTask.setItemTitle(object.get("itemTitle").toString());
+					trainItemTask.setItemtitletype(object.get("itemtitletype").toString());
+					trainItemTask.setItemInfo(object.get("itemInfo").toString());
+					trainItemTask.setItemaddinfo(object.get("itemaddinfo").toString());
+					trainItemTask.setCosimageurls(object.get("cosimageurls").toString());
+					trainItemTask.setFinishFlag("0");  //事项完结标示
+					trainItemTask.setFinishDayId(operDayId);
+					trainItemTask.setFinishDay(operDay);
 					
-					userServInfo.put("finishFlag", "0");  //事项完结标示
-					userServInfo.put("finishDayId", operDayId);
-					userServInfo.put("finishDay", operDay);
-
-					userServInfo.put("recordType", "");
-					userServInfo.put("recordItem1", ""); // 备用字段
-					userServInfo.put("recordItem2", ""); // 备用字段
-					userServInfo.put("recordItem3", ""); // 备用字段
-
-					long count = trainItemTasks.save(userServInfo).getN();
-					 
+					trainItemTaskRepository.save(trainItemTask); 
 				}else if ("end".equals(funOpType)) {
 					// 判断是否存在数据ID itemTimeId 存在则只修改相关信息 否则为新增已经完成的记录
 					String saveDataInfo = object.get("SaveDataInfo").toString();
 					object = JSONObject.fromObject(saveDataInfo);
-					
-					查询是否存在事项ID
-					query = new BasicDBObject(); // 查询条件
-					query.put("timeStamp", object.get("timeStamp")); 
-					 
-					cursor = trainItemTasks.find(query, filter_cloumn)
-							.limit(1).sort(sort_cloumn);
-					list = cursor.toArray();
-					if (list.size() > 0) {
-						修改状态
+					//查询是否存在事项ID
+					trainItemTasks = trainItemTaskRepository.queryByTimeStamp(object.get("timeStamp").toString() , 1);
+					if (trainItemTasks.size() > 0) {
 						// 修改数据
-						BasicDBObject update_object = new BasicDBObject();
-						BasicDBObject set_object = new BasicDBObject();
-
-						set_object.put("itemTitle", object.get("itemTitle"));
-						set_object.put("itemtitletype", object.get("itemtitletype"));
-						set_object.put("itemInfo", object.get("itemInfo"));
-						set_object.put("itemaddinfo", object.get("itemaddinfo"));
-						set_object.put("cosimageurls", object.get("cosimageurls"));
+						trainItemTask = trainItemTasks.get(0);
 						
-						set_object.put("finishFlag", "1");  //事项完结标示
-						set_object.put("finishDayId", operDayId);
-						set_object.put("finishDay", operDay);
-						 
-						update_object.put("$set", set_object);
-
-						trainItemTasks.update(query, update_object, false, true);
+						trainItemTask.setItemTitle(object.get("itemTitle").toString());
+						trainItemTask.setItemtitletype(object.get("itemtitletype").toString());
+						trainItemTask.setItemInfo(object.get("itemInfo").toString());
+						trainItemTask.setItemaddinfo(object.get("itemaddinfo").toString());
+						trainItemTask.setCosimageurls(object.get("cosimageurls").toString());
+						trainItemTask.setFinishFlag("1");  //事项完结标示
+						trainItemTask.setFinishDayId(operDayId);
+						trainItemTask.setFinishDay(operDay);
+						  
+						trainItemTaskRepository.save(trainItemTask);
 					}else{
-						直接新增信息
-						query = new BasicDBObject();
-						cursor = trainItemTasks.find(query, filter_cloumn)
-								.limit(1).sort(sort_cloumn);
-						// 把结果集输出成list类型
-						list = cursor.toArray();
+						//直接新增信息
 						long reqItemTimeId = 0;
-						if (list.size() > 0) {
-							reqItemTimeId = (Long) list.get(0).get("reqItemTimeId") + 1;
-						} else {
-							reqItemTimeId = 1;
-						}
+						reqItemTimeId = trainItemTaskRepository.findMaxReqItemTimeId()+1;
 						
 						// 添加数据
-						DBObject userServInfo = new BasicDBObject();
-						userServInfo.put("reqOpenId", reqOpenId);
-						userServInfo.put("operDayId", operDayId);
-						userServInfo.put("operDay", operDay);
-						userServInfo.put("reqItemTimeId", reqItemTimeId);
-						userServInfo.put("timeStamp", timeStamp);
-
-						userServInfo.put("itemTitle", object.get("itemTitle"));
-						userServInfo.put("itemtitletype", object.get("itemtitletype"));
-						userServInfo.put("itemInfo", object.get("itemInfo"));
-						userServInfo.put("itemaddinfo", object.get("itemaddinfo"));
-						userServInfo.put("cosimageurls", object.get("cosimageurls"));
+						trainItemTask = new TrainItemTask(); 
+	                    
+						trainItemTask.setReqOpenId(reqOpenId);
+						trainItemTask.setOperDayId(operDayId);
+						trainItemTask.setOperDay(operDay);
+						trainItemTask.setReqItemTimeId(reqItemTimeId);
+						trainItemTask.setTimeStamp(timeStamp);
+						trainItemTask.setItemTitle(object.get("itemTitle").toString());
+						trainItemTask.setItemtitletype(object.get("itemtitletype").toString());
+						trainItemTask.setItemInfo(object.get("itemInfo").toString());
+						trainItemTask.setItemaddinfo(object.get("itemaddinfo").toString());
+						trainItemTask.setCosimageurls(object.get("cosimageurls").toString());
+						trainItemTask.setFinishFlag("1");  //事项完结标示
+						trainItemTask.setFinishDayId(operDayId);
+						trainItemTask.setFinishDay(operDay);
 						
-						userServInfo.put("finishFlag", "1");  //事项完结标示
-						userServInfo.put("finishDayId", operDayId);
-						userServInfo.put("finishDay", operDay);
-
-						userServInfo.put("recordType", "");
-						userServInfo.put("recordItem1", ""); // 备用字段
-						userServInfo.put("recordItem2", ""); // 备用字段
-						userServInfo.put("recordItem3", ""); // 备用字段
-
-						long count = trainItemTasks.save(userServInfo).getN(); 
+						trainItemTaskRepository.save(trainItemTask);
 					}
-					
-					jsonarray = JSONArray.fromObject(list);
+					jsonarray = JSONArray.fromObject(trainItemTasks);
 					returnTex = jsonarray.toString();
 					
 				}else if ("queryList".equals(funOpType)) {
-					
-					查询待完成事项和已完成事项
-					query = new BasicDBObject(); // 查询条件
-					query.put("reqOpenId", reqOpenId);
-					query.put("finishFlag", "1");
-					 
-					cursor = trainItemTasks.find(query, filter_cloumn)
-							.limit(10).sort(sort_cloumn);
-					list = cursor.toArray();
-					if(list.size() > 0){
-						jsonarray = JSONArray.fromObject(list); 
+					//查询待完成事项和已完成事项
+					//已完成的事项列表
+					trainItemTasks = trainItemTaskRepository.queryByReqOpenIdAndFinishFlag(reqOpenId,"1",10);
+					if(trainItemTasks.size() > 0){
+						jsonarray = JSONArray.fromObject(trainItemTasks); 
 						jsonTaskOne.put("finish", jsonarray);
 					}
 
-					query = new BasicDBObject(); // 查询条件
-					query.put("reqOpenId", reqOpenId);
-					query.put("finishFlag", "0");
-					 
-					cursor = trainItemTasks.find(query, filter_cloumn)
-							.limit(10).sort(sort_cloumn);
-					list = cursor.toArray();
-					if(list.size() > 0){
-						jsonarray = JSONArray.fromObject(list); 
+					//未完成的事项列表
+					trainItemTasks = trainItemTaskRepository.queryByReqOpenIdAndFinishFlag(reqOpenId,"0",10);
+					if(trainItemTasks.size() > 0){
+						jsonarray = JSONArray.fromObject(trainItemTasks); 
 						jsonTaskOne.put("action", jsonarray);
 					}
-					 
 					jsonTaskAarr.add(jsonTaskOne);
 					returnTex = jsonTaskAarr.toString(); 
-					
 				} else if ("queryBySearch".equals(funOpType)) {
 					String itemtitletype = object.get("itemtype").toString();
-					按照类别查询知识条目
-					query = new BasicDBObject(); // 查询条件
-					query.put("reqOpenId", reqOpenId);
-					query.put("finishFlag", "1");
-					
-					// 文件检索直接匹配文字即可
-					Pattern pattern = Pattern.compile("^.*" + itemtitletype + ".*$", Pattern.CASE_INSENSITIVE);
-					query.put("itemTitle", pattern); // 模糊查询处理
-					
-					filter_cloumn = new BasicDBObject(); // 查询字段
-					filter_cloumn.put("operDay", 1);
-					filter_cloumn.put("reqItemTimeId", 1);
-					filter_cloumn.put("itemTitle", 1);
-					filter_cloumn.put("_id", 0); // 不显示ID字段
-					  
-					cursor = trainItemTasks.find(query, filter_cloumn)
-							.limit(10).sort(sort_cloumn);
-					list = cursor.toArray();
-					if(list.size() > 0){
-						jsonarray = JSONArray.fromObject(list); 
+					//按照类别查询知识条目
+					trainItemTasks = trainItemTaskRepository.searchByReqOpenIdAndFinishFlag(reqOpenId, "1", itemtitletype, 10);
+					if(trainItemTasks.size() > 0){
+						jsonarray = JSONArray.fromObject(trainItemTasks); 
 						jsonTaskOne.put("finish", jsonarray);
 					}
 
-					query = new BasicDBObject(); // 查询条件
-					query.put("reqOpenId", reqOpenId);
-					query.put("finishFlag", "0");
-					query.put("itemTitle", pattern); 
-					
-					cursor = trainItemTasks.find(query, filter_cloumn)
-							.limit(10).sort(sort_cloumn);
-					list = cursor.toArray();
-					if(list.size() > 0){
-						jsonarray = JSONArray.fromObject(list); 
+					trainItemTasks = trainItemTaskRepository.searchByReqOpenIdAndFinishFlag(reqOpenId, "0", itemtitletype, 10);
+					if(trainItemTasks.size() > 0){
+						jsonarray = JSONArray.fromObject(trainItemTasks); 
 						jsonTaskOne.put("action", jsonarray);
 					}
 					 
 					jsonTaskAarr.add(jsonTaskOne);
 					returnTex = jsonTaskAarr.toString(); 
 				}else if ("byid".equals(funOpType)) {
-					按照类别查询知识条目
-					query = new BasicDBObject(); // 查询条件
-					query.put("reqOpenId", reqOpenId);
-					query.put("timeStamp", object.get("timeStamp")); // 模糊查询处理
-					
-					filter_cloumn = new BasicDBObject(); // 查询字段
-//					filter_cloumn.put("operDay", 1);
-//					filter_cloumn.put("reqItemTimeId", 1);
-//					filter_cloumn.put("itemTitle", 1);
-					filter_cloumn.put("_id", 0); // 不显示ID字段
-					
-					cursor = trainItemTasks.find(query, filter_cloumn)
-							.limit(40).sort(sort_cloumn);
-					list = cursor.toArray();
-					jsonarray = JSONArray.fromObject(list);
+					//按照类别查询知识条目
+					trainItemTasks = trainItemTaskRepository.queryByReqOpenIdAndTimeStamp(reqOpenId, object.get("timeStamp").toString(), 40);
+					jsonarray = JSONArray.fromObject(trainItemTasks);
 					returnTex = jsonarray.toString();
 				} else if("opuspublish".equals(funOpType)||"opustask".equals(funOpType)){ //留言、评论信息处理
 	                String querystamp = object.get("querystamp").toString();
 	                
 					//获取用户信息写入发布信息中
-					query = new BasicDBObject(); // 查询条件
-					query.put("OpenId", reqOpenId);
-					cursor = smallusers.find(query, filter_cloumn)
-							.limit(1);
-					list = cursor.toArray();
-					if("".equals(list.get(0).get("userOperType1"))||"allow".equals(list.get(0).get("userOperType1"))){	
-						 
+					wxSmallUser = wxSmallUserRepository.findByOpenId(reqOpenId).get(0);
+					if("".equals(wxSmallUser.getUserOperType1())||wxSmallUser.getUserOperType1()==null||"allow".equals(wxSmallUser.getUserOperType1())){	
 						now = new Date();
 			  			timeStamp = timeStampmId.format(now);
 				  	    // 添加数据
-						DBObject newopus = new BasicDBObject();
-						newopus.put("reqOpenId", reqOpenId);
-						newopus.put("operDayId", operDayId);
-						newopus.put("operDay", operDay); 
-						newopus.put("timeStamp", timeStamp);
-						newopus.put("tasktimeStamp", querystamp);  
-						newopus.put("publishInfo", object.get("SaveDataInfo"));   
+			  			trainItemTaskComment = new TrainItemTaskComment();
+
+			  			trainItemTaskComment.setReqOpenId(reqOpenId);
+			  			trainItemTaskComment.setOperDayId(operDayId);
+			  			trainItemTaskComment.setOperDay(operDay); 
+			  			trainItemTaskComment.setTimeStamp(timeStamp);
+			  			trainItemTaskComment.setTasktimeStamp(querystamp);  
+			  			trainItemTaskComment.setPublishInfo(object.get("SaveDataInfo").toString());   
 						//显示控制
-						newopus.put("showallow", "allow");
+			  			trainItemTaskComment.setShowallow("allow");
 						//用户信息 
-						newopus.put("pubNickName", list.get(0).get("nickName"));  
-						newopus.put("pubAvatarUrl", list.get(0).get("cosUrl"));
+			  			trainItemTaskComment.setPubNickName(wxSmallUser.getNickName());  
+			  			trainItemTaskComment.setPubAvatarUrl(wxSmallUser.getCosUrl());
 						
 						if("opuspublish".equals(funOpType)){
-							query = new BasicDBObject(); // 查询当前作品的留言记录数
-			                query.put("opustimeStamp", querystamp); 
-			                query.put("pubFlag", "publish"); 
-			    			
-						    cursor = trainItemOpusComments.find(query, filter_cloumn)
-									.limit(1).sort(sort_cloumn); 
-							// 把结果集输出成list类型
-							list = cursor.toArray();
 							long reqItemTimeId = 0;
-							if (list.size() > 0) {
-								reqItemTimeId = (Long) list.get(0).get("reqItemTimeId") + 1;
-							} else {
-								reqItemTimeId = 1;
-							}   
-							newopus.put("reqItemTimeId", reqItemTimeId);
-							newopus.put("pubFlag", "publish");  
+			                reqItemTimeId = trainItemOpusCommentRepository.queryByMaxOpustimeStampPubFlag(querystamp, "publish")+1;
+			                trainItemTaskComment.setReqItemTimeId(reqItemTimeId);
+			                trainItemTaskComment.setPubFlag("publish");  
 						}else if("opustask".equals(funOpType)){
-							newopus.put("reqItemTimeId", Integer.parseInt(object.get("publishId").toString()));
-							newopus.put("pubFlag", "task");  
+							trainItemTaskComment.setReqItemTimeId(Long.parseLong(object.get("publishId").toString()));
+							trainItemTaskComment.setPubFlag("task");  
 						} 
-						long count = trainItemTaskComments.save(newopus).getN();  
+						trainItemTaskCommentRepository.save(trainItemTaskComment);
 					}else{
 						returnTex = "发言不合规，已被禁言";
 					}
@@ -1261,40 +1080,29 @@ public class DataManageInfoSub6 {
 	                String querystamp = object.get("querystamp").toString();
 	                String killstamp = object.get("SaveDataInfo").toString();
 	                String killflag = "0";
-	                
+	                String pubFlag = "";
+	                long killReqId = 0;
 	                //查询用户的权限信息
-	                query = new BasicDBObject(); // 查询条件
-	                query.put("opustimeStamp", querystamp); 
-	                query.put("timeStamp", killstamp);
 	                if("killpublish".equals(funOpType)){
-	                	query.put("pubFlag", "publish");  
+	                	pubFlag = "publish"; 
 					}else if("killtask".equals(funOpType)){
-						query.put("pubFlag", "task"); 
+						pubFlag = "task";
 					}
-	                cursor = trainItemOpusComments.find(query, filter_cloumn)
-							.limit(1).sort(sort_cloumn); 
-					// 把结果集输出成list类型
-	                listDb = cursor.toArray();
-					if (listDb.size() > 0) {
-						String  pubOpenId = listDb.get(0).get("reqOpenId").toString() ;
+	                
+	                trainItemOpusComments = trainItemOpusCommentRepository.queryBytimeStampPubFlag(querystamp, killstamp, pubFlag, 1);
+	                if (trainItemOpusComments.size() > 0) {
+						String  pubOpenId = trainItemOpusComments.get(0).getReqOpenId();
+						killReqId = trainItemOpusComments.get(0).getReqItemTimeId();
 						//检查当前的用户是否有操作权限
 						if(reqOpenId.equals(pubOpenId)){
 							//同一个用户随意操作
 							killflag = "1";
 						}else{
-							query = new BasicDBObject(); // 查询条件
-							query.put("OpenId", reqOpenId);
-							cursor = smallusers.find(query, filter_cloumn)
-									.limit(1);
-							list = cursor.toArray();
-							String reqOpGroup = list.get(0).get("userGroupType").toString();
+							wxSmallUser = wxSmallUserRepository.findByOpenId(reqOpenId).get(0);
+							String reqOpGroup = wxSmallUser.getUserGroupType();
 							
-							query = new BasicDBObject(); // 查询条件
-							query.put("OpenId", pubOpenId);
-							cursor = smallusers.find(query, filter_cloumn)
-									.limit(1);
-							list = cursor.toArray();
-							String pubOpGroup = list.get(0).get("userGroupType").toString();
+							wxSmallUser = wxSmallUserRepository.findByOpenId(pubOpenId).get(0);
+							String pubOpGroup = wxSmallUser.getUserGroupType();
 							
 							if(Integer.parseInt(pubOpGroup.substring(3))>Integer.parseInt(reqOpGroup.substring(3))){
 								killflag = "1";
@@ -1307,15 +1115,12 @@ public class DataManageInfoSub6 {
 					}
 	                //删除数据
 	    			if("1".equals(killflag)){
-	    				query = new BasicDBObject(); // 查询条件
-	    				query.put("opustimeStamp", querystamp); 
-	                    if("killpublish".equals(funOpType)){
-	                    	query.put("reqItemTimeId", listDb.get(0).get("reqItemTimeId"));  
-	                    	trainItemOpusComments.remove(query);
+	    				if("killpublish".equals(funOpType)){
+	                    	trainItemOpusComments = trainItemOpusCommentRepository.queryByopusreqid(querystamp,killReqId);
+	                    	trainItemOpusCommentRepository.delete(trainItemOpusComments);
 	                    }else if("killtask".equals(funOpType)){
-	                    	query.put("timeStamp", killstamp);
-	    					query.put("pubFlag", "task");
-	                        trainItemOpusComments.remove(query);
+	                    	trainItemOpusComments = trainItemOpusCommentRepository.queryBytimeStampPubFlag(querystamp,killstamp,"task",300);
+	                    	trainItemOpusCommentRepository.delete(trainItemOpusComments);
 	    				}
 	    			}else{
 	    				returnTex = "不能越权操作";
@@ -1323,160 +1128,83 @@ public class DataManageInfoSub6 {
 				}
 		} else if ("ItemMusictimer".equals(getType)) {
 			String funOpType = object.get("funOpType").toString(); 
-			DBCursor cursor ;
-			List<DBObject> list;
 			JSONArray jsonarray;
-			query = new BasicDBObject(); // 查询条件
-			query.put("reqOpenId", reqOpenId); 
-			BasicDBObject filter_cloumn = new BasicDBObject(); // 查询字段
-//			filter_cloumn.put("reqItemTimeId", 1);
-			filter_cloumn.put("_id", 0); // 不显示ID字段
-
-			BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-			sort_cloumn.put("reqItemTimeId", -1);
+			List<TrainItemMusictimer> trainItemMusictimers;
+			TrainItemMusictimer trainItemMusictimer;
+			
 			if ("save".equals(funOpType))
 			{
-				String saveDataInfo = object.get("SaveDataInfo").toString();
-				String itemInfo = object.get("itemInfo").toString();
-				 
-			    cursor = trainItemMusictimers.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn);
-
-				// 把结果集输出成list类型
-				list = cursor.toArray();
 				long reqItemTimeId = 0;
-				if (list.size() > 0) {
-					reqItemTimeId = (Long) list.get(0).get("reqItemTimeId") + 1;
-				} else {
-					reqItemTimeId = 1;
-				}
+				reqItemTimeId = trainItemMusictimerRepository.findMaxReqItemTimeId(reqOpenId)+1;
 				
 				// 添加数据
-				DBObject userServInfo = new BasicDBObject();
-				userServInfo.put("reqOpenId", reqOpenId);
-				userServInfo.put("operDayId", operDayId);
-				userServInfo.put("operDay", operDay);
-				userServInfo.put("reqItemTimeId", reqItemTimeId);
+				trainItemMusictimer = new TrainItemMusictimer();
 
-				userServInfo.put("itemInfo", object.get("itemInfo"));
-				userServInfo.put("itemList", object.get("SaveDataInfo"));  
+				trainItemMusictimer.setReqOpenId(reqOpenId);
+				trainItemMusictimer.setOperDayId(operDayId);
+				trainItemMusictimer.setOperDay(operDay);
+				trainItemMusictimer.setReqItemTimeId(reqItemTimeId);
+				trainItemMusictimer.setItemInfo(object.get("itemInfo").toString());
+				trainItemMusictimer.setItemList(object.get("SaveDataInfo").toString());  
 
-				long count = trainItemMusictimers.save(userServInfo).getN();
+				trainItemMusictimerRepository.save(trainItemMusictimer);
 				
 			}else if("queryByid".equals(funOpType)){
 				String itemTimeId = object.get("itemTimeId").toString();
-				按照类别查询知识条目
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", reqOpenId);
-				query.put("reqItemTimeId", Integer.parseInt(itemTimeId)); // 模糊查询处理
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				cursor = trainItemMusictimers.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				//按照类别查询知识条目
+				trainItemMusictimers = trainItemMusictimerRepository.queryByReqOpenIdAndReqItemTimeId(reqOpenId, Long.parseLong(itemTimeId), 1);
+				jsonarray = JSONArray.fromObject(trainItemMusictimers);
 				returnTex = jsonarray.toString();
 			}else if ("queryByOrder".equals(funOpType)) {
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("operDay", 1);
-				filter_cloumn.put("reqItemTimeId", 1);
-				filter_cloumn.put("itemInfo", 1);
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				cursor = trainItemMusictimers.find(query, filter_cloumn)
-						.limit(10).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				trainItemMusictimers = trainItemMusictimerRepository.queryByReqOpenId(reqOpenId, 10);
+				jsonarray = JSONArray.fromObject(trainItemMusictimers);
 				returnTex = jsonarray.toString(); 
-				
 			}else if ("queryBySearch".equals(funOpType)) {
 				String itemtitletype = object.get("itemtype").toString();
-				按照类别查询知识条目
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", reqOpenId);
-				
-				// 文件检索直接匹配文字即可
-				Pattern pattern = Pattern.compile("^.*" + itemtitletype + ".*$", Pattern.CASE_INSENSITIVE);
-				query.put("itemInfo", pattern); // 模糊查询处理 
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("operDay", 1);
-				filter_cloumn.put("reqItemTimeId", 1);
-				filter_cloumn.put("itemInfo", 1);
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				cursor = trainItemMusictimers.find(query, filter_cloumn)
-						.limit(10).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
-				returnTex = jsonarray.toString(); 
-				
+				//按照类别查询知识条目
+				trainItemMusictimers = trainItemMusictimerRepository.queryByReqOpenIdAndItemInfo(reqOpenId, itemtitletype, 10);
+				jsonarray = JSONArray.fromObject(trainItemMusictimers);
+				returnTex = jsonarray.toString();
 			} 
 		} else if ("ItemPublishInfo".equals(getType)) {
 			String funOpType = object.get("funOpType").toString(); 
-			DBCursor cursor ;
-			List<DBObject> list;
 			JSONArray jsonarray;
-			query = new BasicDBObject(); // 查询条件
-			query.put("reqOpenId", reqOpenId); 
-			BasicDBObject filter_cloumn = new BasicDBObject(); // 查询字段
-//			filter_cloumn.put("reqItemTimeId", 1);
-			filter_cloumn.put("_id", 0); // 不显示ID字段
+			WxSmallUser wxSmallUser;
+			List<TrainItemPublish> trainItemPublishs;
+			TrainItemPublish trainItemPublish;
 
-			BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-			sort_cloumn.put("reqItemTimeId", -1);
+
 			if ("savely".equals(funOpType)) //发布留言信息
 			{ 
-				String saveDataInfo = object.get("SaveDataInfo").toString(); 
-				
-				query = new BasicDBObject();
-			    cursor = trainItemPublishs.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn);
-
-				// 把结果集输出成list类型
-				list = cursor.toArray();
 				long reqItemTimeId = 0;
-				if (list.size() > 0) {
-					reqItemTimeId = (Long) list.get(0).get("reqItemTimeId") + 1;
-				} else {
-					reqItemTimeId = 1;
-				}
+				reqItemTimeId = trainItemPublishRepository.findMaxReqItemTimeId()+1;
 				 
 				//获取用户信息写入发布信息中
-				query = new BasicDBObject(); // 查询条件
-				query.put("OpenId", reqOpenId);
-				cursor = smallusers.find(query, filter_cloumn)
-						.limit(1);
-				list = cursor.toArray();
+				wxSmallUser = wxSmallUserRepository.findByOpenId(reqOpenId).get(0);
 				 
 				// 添加数据
-				DBObject userServInfo = new BasicDBObject();
-				userServInfo.put("reqOpenId", reqOpenId);
-				userServInfo.put("operDayId", operDayId);
-				userServInfo.put("operDay", operDay);
-				userServInfo.put("reqItemTimeId", reqItemTimeId);
+				trainItemPublish = new TrainItemPublish();
 
-				userServInfo.put("publishInfo", object.get("SaveDataInfo"));  
-				userServInfo.put("addOperDay", operDay);
-				userServInfo.put("timeStamp", timeStamp);
-				userServInfo.put("addTaskInfo", "");  
-				userServInfo.put("addOpenId", "");  
-				
+				trainItemPublish.setReqOpenId(reqOpenId);
+				trainItemPublish.setOperDayId(operDayId);
+				trainItemPublish.setOperDay(operDay);
+				trainItemPublish.setReqItemTimeId(reqItemTimeId);
+				trainItemPublish.setPublishInfo(object.get("SaveDataInfo").toString());  
+				trainItemPublish.setAddOperDay(operDay);
+				trainItemPublish.setTimeStamp(timeStamp);
+				trainItemPublish.setAddTaskInfo("");  
+				trainItemPublish.setAddOpenId("");  
 				//用户名称和头像 
-				userServInfo.put("pubNickName", list.get(0).get("nickName"));  
-				userServInfo.put("pubAvatarUrl", list.get(0).get("avatarUrl"));  
-				userServInfo.put("pubFlag", "publish");  
-				userServInfo.put("taskNickName", "");
-				
+				trainItemPublish.setPubNickName(wxSmallUser.getNickName());  
+				trainItemPublish.setPubAvatarUrl(wxSmallUser.getAvatarUrl());  
+				trainItemPublish.setPubFlag("publish");  
+				trainItemPublish.setTaskNickName("");
 				//显示控制
-				userServInfo.put("showallow", "allow");
+				trainItemPublish.setShowallow("allow");
 
-				if("".equals(list.get(0).get("userOperType1"))||"allow".equals(list.get(0).get("userOperType1"))){
+				if("".equals(wxSmallUser.getUserOperType1())||wxSmallUser.getUserOperType1()==null||"allow".equals(wxSmallUser.getUserOperType1())){
 					//默认使用 userOperType1 控制发布权限 后期可以考虑或者
-					long count = trainItemPublishs.save(userServInfo).getN();
+					trainItemPublishRepository.save(trainItemPublish);
 				}else{
 					returnTex = "之前的发言不文明，已被禁言";
 				}
@@ -1484,127 +1212,54 @@ public class DataManageInfoSub6 {
 				String itemTimeId = object.get("itemTimeId").toString();
 				String pubOpenId = object.get("pubOpenId").toString(); 
 				
-				按照类别查询知识条目
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", pubOpenId);
-				query.put("reqItemTimeId", Integer.parseInt(itemTimeId)); // 模糊查询处理
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				cursor = trainItemPublishs.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn);
-				list = cursor.toArray();
+				//按照类别查询知识条目
+				trainItemPublishs = trainItemPublishRepository.queryByReqOpenIdAndReqItemTimeId(pubOpenId, Long.parseLong(itemTimeId), 1); 
 				 
 				// 添加数据
-				DBObject userServInfo = new BasicDBObject();
-				userServInfo.put("reqOpenId", list.get(0).get("reqOpenId"));
-				userServInfo.put("operDayId", list.get(0).get("operDayId"));
-				userServInfo.put("operDay", list.get(0).get("operDay"));
-				userServInfo.put("reqItemTimeId", list.get(0).get("reqItemTimeId"));
-				//userServInfo.put("publishInfo", list.get(0).get("publishInfo"));  
-				userServInfo.put("publishInfo", "");
-				
-				userServInfo.put("addOperDay", operDay);
-				userServInfo.put("timeStamp", timeStamp);
-				userServInfo.put("addTaskInfo", object.get("SaveDataInfo"));  
-				userServInfo.put("addOpenId", reqOpenId);  
-				
+				trainItemPublish = new TrainItemPublish();
+
+				trainItemPublish.setReqOpenId(trainItemPublishs.get(0).getReqOpenId());
+				trainItemPublish.setOperDayId(trainItemPublishs.get(0).getOperDayId());
+				trainItemPublish.setOperDay(trainItemPublishs.get(0).getOperDay());
+				trainItemPublish.setReqItemTimeId(trainItemPublishs.get(0).getReqItemTimeId());
+				trainItemPublish.setPublishInfo("");  
+				trainItemPublish.setAddOperDay(operDay);
+				trainItemPublish.setTimeStamp(timeStamp);
+				trainItemPublish.setAddTaskInfo(object.get("SaveDataInfo").toString());  
+				trainItemPublish.setAddOpenId(reqOpenId);  
 				//显示控制
-				userServInfo.put("showallow", "allow");
-				
+				trainItemPublish.setShowallow("allow");
+				    
 				//获取用户信息写入发布信息中
-				query = new BasicDBObject(); // 查询条件
-				query.put("OpenId", reqOpenId);
-				cursor = smallusers.find(query, filter_cloumn)
-						.limit(1);
-				list = cursor.toArray();
-				  
-				userServInfo.put("pubNickName", "");  
-				userServInfo.put("pubAvatarUrl", "");  
-				userServInfo.put("pubFlag", "task");
-				userServInfo.put("taskNickName", list.get(0).get("nickName"));
+				wxSmallUser = wxSmallUserRepository.findByOpenId(reqOpenId).get(0);
 				
-				if("".equals(list.get(0).get("userOperType1"))||"allow".equals(list.get(0).get("userOperType1"))){
+				//用户名称和头像 
+				trainItemPublish.setPubNickName("");  
+				trainItemPublish.setPubAvatarUrl("");  
+				trainItemPublish.setPubFlag("task");  
+				trainItemPublish.setTaskNickName(wxSmallUser.getNickName());
+				 
+				if("".equals(wxSmallUser.getUserOperType1())||wxSmallUser.getUserOperType1()==null||"allow".equals(wxSmallUser.getUserOperType1())){
 					//默认使用 userOperType1 控制发布权限 后期可以考虑或者
-					long count = trainItemPublishs.save(userServInfo).getN();
+					trainItemPublishRepository.save(trainItemPublish);
 				}else{
 					returnTex = "之前的发言不文明，已被禁言";
 				}
 			}else if ("queryinfo".equals(funOpType)) { //支持下拉刷新获取后续信息
-				//不允许查看被禁言的人员发布、评论的相关信息     考虑到效率问题 可以将禁言后的屏蔽言论功能放在禁言的时候去处理。
-				
-				query = new BasicDBObject(); // 查询条件
-				query.put("userOperType1", "notallow");
-				cursor = smallusers.find(query, filter_cloumn)
-						.limit(30);
-				list = cursor.toArray();
-				
-				BasicDBList userOps = new BasicDBList();
-				String notallowId = "";
-
-				for (int i = 0; i < list.size(); i++) {
-					notallowId = list.get(i).get("OpenId").toString();
-					userOps.add(notallowId);
-				} 
-				
-				
-				query = new BasicDBObject(); // 查询条件
-				 
-				按照类别查询知识条目
-				BasicDBObject queryNow = new BasicDBObject(); // 查询条件
-				queryNow.put("operDayId", object.get("queryDay"));
-				queryNow.put("reqItemTimeId", new BasicDBObject("$lt", object.get("itemTimeId")));
-				 
-				BasicDBList values = new BasicDBList();
-				values.add(queryNow);  //当日的数据
-	 			values.add(new BasicDBObject("operDayId", new BasicDBObject("$lt", object.get("queryDay"))));  //历史数据
-	 			query.put("$or", values);
-	 			
-	 			query.put("showallow", "allow");  //控制禁言的信息不展现
-	 			//query.put("reqOpenId", new BasicDBObject("$nin", userOps));  //禁止显示发布信息
-	 			//query.put("addOpenId", new BasicDBObject("$nin", userOps));  //禁止显示评论信息
-	 			
-	 			//sysDebugLog("ItemPublishInfo", "5756", "queryNow",query.toString());
-	 			
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				sort_cloumn = new BasicDBObject(); // 排序字段
-				sort_cloumn.put("operDayId", -1);
-				sort_cloumn.put("reqItemTimeId", -1);
-				sort_cloumn.put("pubFlag", 1);
-				
-				cursor = trainItemPublishs.find(query, filter_cloumn)
-						.limit(30).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				//按照类别查询知识条目
+				trainItemPublishs = trainItemPublishRepository.queryByOperDayIdAndReqItemTimeId(object.get("queryDay").toString(),Long.parseLong(object.get("itemTimeId").toString()), object.get("queryDay").toString(), 30);
+				jsonarray = JSONArray.fromObject(trainItemPublishs);
 				returnTex = jsonarray.toString();  
 				
 			}else if ("querytask".equals(funOpType)) {  //查看指定内容的评论信息
 				String itemTimeId = object.get("itemTimeId").toString();
 				String pubOpenId = object.get("pubOpenId").toString(); 
-				
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", pubOpenId);
-				query.put("reqItemTimeId", Integer.parseInt(itemTimeId)); // 模糊查询处理
-				
-				query.put("showallow", "allow");  //控制禁言的信息不展现
-				
-				filter_cloumn = new BasicDBObject(); // 查询字段
-				filter_cloumn.put("_id", 0); // 不显示ID字段
-				
-				sort_cloumn = new BasicDBObject(); // 排序字段
-				sort_cloumn.put("timeStamp", -1);
-				
-				cursor = trainItemPublishs.find(query, filter_cloumn)
-						.limit(40).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
-				returnTex = jsonarray.toString();   
+					
+				trainItemPublishs = trainItemPublishRepository.queryByReqOpenIdAndReqItemTimeIdAllow(pubOpenId, Long.parseLong(itemTimeId), 40);
+				jsonarray = JSONArray.fromObject(trainItemPublishs);
+				returnTex = jsonarray.toString(); 
 			} 
-		} */
-		else if ("ItemOpusInfo".equals(getType)) {
+		}else if ("ItemOpusInfo".equals(getType)) {
 			String funOpType = object.get("funOpType").toString(); 
 			JSONArray jsonarray;
 			WxSmallUser wxSmallUser ;
@@ -1917,83 +1572,32 @@ public class DataManageInfoSub6 {
 				jsonarray = JSONArray.fromObject(wxSmallUserActions);
 				returnTex = jsonarray.toString(); 
 			}
-		} 
-		/*else if ("ItemTimeQuery".equals(getType)) {
+		} else if ("ItemTimeQuery".equals(getType)) {
 			String funOpType = object.get("funOpType").toString();
 			String queryDay = object.get("queryDay").toString();
 
-			query = new BasicDBObject(); // 查询条件
-			query.put("reqOpenId", reqOpenId);
-//			query.put("operDayId", operDayId);
-			query.put("operDayId", queryDay);
-
-			BasicDBObject filter_cloumn = new BasicDBObject(); // 查询字段
-			filter_cloumn.put("_id", 0); // 不显示ID字段
- 
+			List<TrainItemTimeInfo> trainItemTimeInfos;
+			List<TrainItemTimeAngle> trainItemTimeAngles;
+			
 			if ("list".equals(funOpType)) {
-				filter_cloumn.put("reqItemTimeId", 1);
-				filter_cloumn.put("itemTitle", 1);
-				filter_cloumn.put("startTime", 1);
-				filter_cloumn.put("endTime", 1);
-				filter_cloumn.put("costTime", 1);
-				filter_cloumn.put("finishFlag", 1);
- 
-				BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-				sort_cloumn.put("reqItemTimeId", -1);
-				DBCursor cursor = trainItemTimes.find(query, filter_cloumn)
-						.limit(10).sort(sort_cloumn);
-				List<DBObject> list = cursor.toArray();
-				JSONArray jsonarray = JSONArray.fromObject(list);
+				trainItemTimeInfos = trainItemTimeInfoRepository.findByReqOpenIdAndOperDayId(reqOpenId,queryDay,10);
+				JSONArray jsonarray = JSONArray.fromObject(trainItemTimeInfos);
 				returnTex = jsonarray.toString();
-				
 			} else if ("byid".equals(funOpType)) {
 				String itemTimeId = object.get("itemTimeId").toString();
+				long qryItemTimeId = 0;
 				if (itemTimeId != null && !"".equals(itemTimeId)) {
-					query.put("reqItemTimeId", Long.parseLong(itemTimeId));
-				} else {
-					query.put("reqItemTimeId", 0);
+					qryItemTimeId = Long.parseLong(itemTimeId);
 				}
-				filter_cloumn.put("reqItemTimeId", 1);
-				filter_cloumn.put("itemTitle", 1);
-				filter_cloumn.put("startTime", 1);
-				filter_cloumn.put("endTime", 1);
-				filter_cloumn.put("costTime", 1);
-				filter_cloumn.put("finishFlag", 1);
-
-				filter_cloumn.put("itemInfo", 1);
-				filter_cloumn.put("degrees", 1);
-				filter_cloumn.put("degreeId", 1);
-				filter_cloumn.put("opTypes", 1);
-				filter_cloumn.put("opTypeId", 1);
-				filter_cloumn.put("cosimageurls", 1);
 				
-				filter_cloumn.put("scoreinfo", 1);
-				filter_cloumn.put("scoretimeinfo", 1);
-				filter_cloumn.put("timeAngleId", 1); 
-				
-				BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-				sort_cloumn.put("reqItemTimeId", -1);
-				DBCursor cursor = trainItemTimes.find(query, filter_cloumn)
-						.limit(1).sort(sort_cloumn);
-				List<DBObject> list = cursor.toArray();
+				trainItemTimeInfos = trainItemTimeInfoRepository.findByReqOpenIdAndTimeId(reqOpenId, queryDay, qryItemTimeId , 1);
 				JSONObject jsonmap = new JSONObject();
-				jsonmap.element("trainItem", JSONArray.fromObject(list).toString()); 
-				if(list.size()>0){
-					query = new BasicDBObject(); // 查询条件
-					query.put("reqOpenId", reqOpenId);
-					query.put("angleId", list.get(0).get("timeAngleId"));
+				jsonmap.element("trainItem", JSONArray.fromObject(trainItemTimeInfos).toString()); 
+				if(trainItemTimeInfos.size()>0){
+					long angleId = trainItemTimeInfos.get(0).getTimeAngleId();
 					
-					filter_cloumn = new BasicDBObject();
-					filter_cloumn.put("_id", 0);
-					filter_cloumn.put("angleInfo", 1);
-					filter_cloumn.put("angleType", 1);
-					filter_cloumn.put("angleValue", 1);
-					filter_cloumn.put("angleTimeValue", 1);
-					
-					cursor = trainItemTimeAngles.find(query, filter_cloumn)
-							.limit(70);
-					List<DBObject> listAngle = cursor.toArray();
-					jsonmap.element("trainItemAngle", JSONArray.fromObject(listAngle).toString());  
+					trainItemTimeAngles = trainItemTimeAngleRepository.findByReqOpenIdAndOperDayId(reqOpenId, angleId, 70);
+					jsonmap.element("trainItemAngle", JSONArray.fromObject(trainItemTimeAngles).toString());  
 				}
 				returnTex = jsonmap.toString();
 
@@ -2001,146 +1605,67 @@ public class DataManageInfoSub6 {
 				// 通过名称查询历史数据信息
 				String itemTimeId = object.get("itemTimeId").toString();
 				if (itemTimeId != null && !"".equals(itemTimeId)) {
-					query.put("reqItemTimeId", Long.parseLong(itemTimeId));
 					// 查询记录名称
-					DBObject objOne = trainItemTimes.findOne(query);
-
-					query = new BasicDBObject(); // 查询条件
-					query.put("reqOpenId", reqOpenId);
-					query.put("itemTitle", objOne.get("itemTitle"));
-					query.put("finishFlag", "1");
+					trainItemTimeInfos = trainItemTimeInfoRepository.findByReqOpenIdAndTimeId(reqOpenId, queryDay, Long.parseLong(itemTimeId) , 1);
 					
-					query.put("operDayId", new BasicDBObject("$lte", queryDay));
+					String itemTitle =  trainItemTimeInfos.get(0).getItemTitle();
 
-					filter_cloumn.put("reqItemTimeId", 1);
-					filter_cloumn.put("itemTitle", 1);
-					filter_cloumn.put("startTime", 1);
-					filter_cloumn.put("endTime", 1);
-					filter_cloumn.put("costTime", 1);
-					filter_cloumn.put("operDayId", 1); 
-
-					filter_cloumn.put("itemInfo", 1);
-					filter_cloumn.put("degrees", 1);
-					filter_cloumn.put("degreeId", 1);
-					filter_cloumn.put("opTypes", 1);
-					filter_cloumn.put("opTypeId", 1);
-
-					BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-					sort_cloumn.put("reqItemTimeId", -1);
-
-					DBCursor cursor = trainItemTimes.find(query, filter_cloumn)
-							.limit(10).sort(sort_cloumn);
-					List<DBObject> list = cursor.toArray();
-					JSONArray jsonarray = JSONArray.fromObject(list);
+					trainItemTimeInfos = trainItemTimeInfoRepository.findByReqOpenIdAndItemTitle(reqOpenId, itemTitle, queryDay, 10);
+					JSONArray jsonarray = JSONArray.fromObject(trainItemTimeInfos);
 					returnTex = jsonarray.toString();
 				}
 			}
 		} else if ("ItemTitleQuery".equals(getType)) {
-			long queryCount=0;
-			DBCursor cursor ;
-			List<DBObject> list;
 			JSONArray jsonarray;
 			JSONArray jsonTitleAarr = new JSONArray();
 			JSONObject jsonTitleOne = new JSONObject();
-			
-			BasicDBObject filter_cloumn = new BasicDBObject(); // 查询字段
-			filter_cloumn.put("_id", 0); // 不显示ID字段
-			filter_cloumn.put("avatarUrl", 0); // 不显示ID字段
+			List<WxSmallUser> wxSmallUsers;
+			List<String> listUserInfo = new ArrayList<String>();
+			String listOpenId = "";
+			List<TrainItemTitle> trainItemTitles;
 			
 			// 增加权限组的区分 从userServLimit 表中获取用户拥有的权限
-			BasicDBObject queryServLimit = new BasicDBObject(); // 查询条件
-			BasicDBList values = new BasicDBList();
-			values.add(new BasicDBObject("userGroupType", "Lvl9"));  //超级管理员
- 			values.add(new BasicDBObject("userGroupType", "Lvl2"));  //授权发布人   后续考虑设置可查看的等级
- 			queryServLimit.put("$or", values);
-			  
-			DBCursor cursorServLimit = smallusers.find(queryServLimit,filter_cloumn)
-					.limit(200);
-
-			List<DBObject> listServLimit = cursorServLimit.toArray();
-			
-			sysDebugLog("ItemTitleQuery", "5563", "listServLimit",listServLimit.toString());
-			
-			BasicDBList userValues = new BasicDBList();
-			String listOpenId = "";
-
-			for (int i = 0; i < listServLimit.size(); i++) {
-				listOpenId = listServLimit.get(i).get("OpenId")
-						.toString();
-				userValues.add(listOpenId);
+			wxSmallUsers = wxSmallUserRepository.findByUserGroupType("Lvl9", 100);//超级管理员
+			for (int i = 0; i < wxSmallUsers.size(); i++) {
+				listOpenId = wxSmallUsers.get(i).getOpenId();
+				listUserInfo.add(listOpenId);
 			}
-			userValues.add(reqOpenId);
 			
-//			sysDebugLog("ItemTitleQuery", "5575", "userValues",userValues.toString());
-			
-			query = new BasicDBObject(); // 查询条件
-//			query.put("reqOpenId", reqOpenId);
-			query.put("reqOpenId", new BasicDBObject("$in", userValues));
-			query.put("titleType", "1");
+ 			wxSmallUsers = wxSmallUserRepository.findByUserGroupType("Lvl2", 100);//授权发布人   后续考虑设置可查看的等级
+ 			for (int i = 0; i < wxSmallUsers.size(); i++) {
+				listOpenId = wxSmallUsers.get(i).getOpenId();
+				listUserInfo.add(listOpenId);
+			}
+ 			listUserInfo.add(reqOpenId);
 			 
-//			sysDebugLog("ItemTitleQuery", "5575", "query",query.toString());
-			
-			filter_cloumn = new BasicDBObject(); // 查询字段
-			filter_cloumn.put("_id", 0); // 不显示ID字段
-			
-			BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-			sort_cloumn.put("titleUsed", -1);
- 
 			// 查询记录名称
-			queryCount = trainItemTitles.count(query);
-			if(queryCount>0){
-				cursor = trainItemTitles.find(query, filter_cloumn)
-						.limit(60).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list); 
+			trainItemTitles = trainItemTitleRepository.findByReqOpenIdGroupAndTitleType(listUserInfo,"1", 60);
+			if(trainItemTitles.size()>0){
+				jsonarray = JSONArray.fromObject(trainItemTitles); 
 				jsonTitleOne.put("xxitemtitles", jsonarray);
 //				jsonTitleAarr.add(jsonTitleOne); 
 			}
-			
-			query = new BasicDBObject(); // 查询条件
-//			query.put("reqOpenId", reqOpenId);
-			query.put("reqOpenId", new BasicDBObject("$in", userValues));
-			query.put("titleType", "2");
 			 
 			// 查询记录名称
-			queryCount = trainItemTitles.count(query);
-			if(queryCount>0){
-				cursor = trainItemTitles.find(query, filter_cloumn)
-						.limit(60).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list); 
+			trainItemTitles = trainItemTitleRepository.findByReqOpenIdGroupAndTitleType(listUserInfo,"2", 60);
+			if(trainItemTitles.size()>0){
+				jsonarray = JSONArray.fromObject(trainItemTitles); 
 				jsonTitleOne.put("shitemtitles", jsonarray);
 //				jsonTitleAarr.add(jsonTitleOne); 
 			}
-			
-			query = new BasicDBObject(); // 查询条件
-//			query.put("reqOpenId", reqOpenId);
-			query.put("reqOpenId", new BasicDBObject("$in", userValues));
-			query.put("titleType", "3");
 			 
 			// 查询记录名称
-			queryCount = trainItemTitles.count(query);
-			if(queryCount>0){
-				cursor = trainItemTitles.find(query, filter_cloumn)
-						.limit(60).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list); 
+			trainItemTitles = trainItemTitleRepository.findByReqOpenIdGroupAndTitleType(listUserInfo,"3", 60);
+			if(trainItemTitles.size()>0){
+				jsonarray = JSONArray.fromObject(trainItemTitles); 
 				jsonTitleOne.put("ylitemtitles", jsonarray);
 //				jsonTitleAarr.add(jsonTitleOne); 
 			} 
-			
-			query = new BasicDBObject(); // 查询条件
-//			query.put("reqOpenId", reqOpenId);
-			query.put("reqOpenId", new BasicDBObject("$in", userValues));
-			query.put("titleType", "4");
 			 
 			// 查询记录名称 --数学知识点
-			queryCount = trainItemTitles.count(query);
-			if(queryCount>0){
-				cursor = trainItemTitles.find(query, filter_cloumn)
-						.limit(60).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list); 
+			trainItemTitles = trainItemTitleRepository.findByReqOpenIdGroupAndTitleType(listUserInfo,"4", 60);
+			if(trainItemTitles.size()>0){
+				jsonarray = JSONArray.fromObject(trainItemTitles); 
 				jsonTitleOne.put("mathsitemtitles", jsonarray);
 //				jsonTitleAarr.add(jsonTitleOne); 
 			} 
@@ -2151,27 +1676,20 @@ public class DataManageInfoSub6 {
 			String funOpType = object.get("funOpType").toString(); 
   
 			long queryCount=0;
-			DBCursor cursor ;
-			List<DBObject> list;
 			JSONArray jsonarray;
-			query = new BasicDBObject(); // 查询条件
-			query.put("reqOpenId", reqOpenId);
-			 
-			BasicDBObject filter_cloumn = new BasicDBObject(); // 查询字段
-			filter_cloumn.put("_id", 0); // 不显示ID字段
-			filter_cloumn.put("reqOpenId", 0); // 不显示ID字段
-			
-			BasicDBObject sort_cloumn = new BasicDBObject(); // 排序字段
-			sort_cloumn.put("angleId", -1);
+			List<TrainItemAngle> trainItemAngles;
+			TrainItemAngle trainItemAngle;
+			List<TrainDictationWord> trainDictationWords ;
+			TrainDictationWord trainDictationWord;
+			List<TrainDictationInfo> trainDictationInfos ;
+			TrainDictationInfo trainDictationInfo;
 			
 			if ("getAngle".equals(funOpType)) {
-				cursor = trainItemAngles.find(query, filter_cloumn)
-						.limit(60).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				trainItemAngles = trainItemAngleRepository.findByReqOpenId(reqOpenId, 60);
+				jsonarray = JSONArray.fromObject(trainItemAngles);
 				returnTex = jsonarray.toString();
 			}else if("saveAngle".equals(funOpType)){
-				存在则修改否则新增
+				//存在则修改否则新增
 				String saveDatas = object.get("SaveDataInfo").toString();
 		  		jsonarray = JSONArray.fromObject(saveDatas); 
 		  		JSONObject jsonInfoOne = new JSONObject(); 
@@ -2184,166 +1702,94 @@ public class DataManageInfoSub6 {
 		  		   String angleValue = jsonInfoOne.get("angleValue").toString();
 		  		   String angleTimeValue = jsonInfoOne.get("angleTimeValue").toString();
 		  		   
-		  		   记录是否存在
-		  		   query = new BasicDBObject(); // 查询条件
-				   query.put("reqOpenId", reqOpenId);
-				   query.put("angleInfo", angleInfo);
-				   
-				   queryCount = trainItemAngles.count(query);
+		  		   //记录是否存在
+				   queryCount = trainItemAngleRepository.countByReqOpenId(reqOpenId, angleInfo);
 				   if(queryCount>0){
-					   更新记录
-					   BasicDBObject update_object = new BasicDBObject();
-					   BasicDBObject set_object = new BasicDBObject();
-					   set_object.put("angleType", angleType);
-					   set_object.put("angleTypeName", angleTypeName);
-					   set_object.put("angleValue", angleValue);
-					   set_object.put("angleTimeValue", angleTimeValue);
-					     
-					   update_object.put("$set", set_object);
-					   trainItemAngles.update(query, update_object, false, true);
+					   //更新记录
+					   trainItemAngleRepository.updateByReqOpenId(angleType, angleTypeName, angleValue, angleTimeValue , reqOpenId, angleInfo);
 				   }else{
-					   新增记录
-					   query = new BasicDBObject(); // 查询条件
-					   query.put("reqOpenId", reqOpenId);
-					   DBCursor angleId = trainItemAngles.find(query).limit(1)
-								.sort(new BasicDBObject("angleId", -1));
-					   DBObject objNewId = null;
-					   long newangleId = 0;
-					   try {
-							while (angleId.hasNext()) {
-								objNewId = angleId.next();
-								newangleId = (Long) objNewId.get("angleId");
-							}
-						} finally {
-							angleId.close();
-						}
-					   newangleId = newangleId + 1;
-					  
-					    // 添加数据
-						DBObject newangleinfo = new BasicDBObject();
-						
-						newangleinfo.put("reqOpenId", reqOpenId);
-						newangleinfo.put("angleId", newangleId);
-						newangleinfo.put("angleInfo", angleInfo);
-						newangleinfo.put("angleType", angleType);
-						newangleinfo.put("angleTypeName", angleTypeName);
-						newangleinfo.put("angleValue", angleValue);
-						newangleinfo.put("angleTimeValue", angleTimeValue);
-						    
-						newangleId = trainItemAngles.save(newangleinfo).getN();
+					   //新增记录
+					   long angleId = 0;
+					   trainItemAngles = trainItemAngleRepository.findByReqOpenId(reqOpenId, 1);
+					   if(trainItemAngles.size()>0){
+						   angleId= trainItemAngles.get(0).getAngleId();
+					   }
+					   angleId = angleId + 1;
+					   
+					   // 添加数据
+					   trainItemAngle = new TrainItemAngle();
+					   
+					   trainItemAngle.setReqOpenId(reqOpenId);
+					   trainItemAngle.setAngleId(angleId);	
+					   trainItemAngle.setAngleInfo(angleInfo);	
+					   trainItemAngle.setAngleType(angleType);
+					   trainItemAngle.setAngleTypeName(angleTypeName);
+					   trainItemAngle.setAngleValue(angleValue);
+					   trainItemAngle.setAngleTimeValue(angleTimeValue);
+					   
+					   trainItemAngleRepository.save(trainItemAngle);  
 				   } 
 		  		}  
 			}else if("saveWord".equals(funOpType)){
-				存在则修改否则新增
+				//存在则修改否则新增
 				String saveDatas = object.get("SaveDataInfo").toString();
 				String[] save_data_all = saveDatas.split(",|，| ");
 				String wordInfo = "";
-				long newwordId = 0;
+				long wordId = 0;
 				for (int i = 0; i < save_data_all.length; i++) {
 					wordInfo = save_data_all[i];
 					if(wordInfo.length()<1){
 						continue;
 					}
-					判断数据是否存在
-					query = new BasicDBObject(); // 查询条件
-				    query.put("reqOpenId", reqOpenId);
-				    query.put("wordInfo", wordInfo);
-				    queryCount = trainDictationWords.count(query);
+					//判断数据是否存在
+					queryCount = trainDictationWordRepository.countByReqOpenId(reqOpenId, wordInfo);
 				    if(queryCount>0){
-				    	修改数据
-				    	BasicDBObject update_object = new BasicDBObject();
-					   BasicDBObject set_object = new BasicDBObject();
-					   set_object.put("nearDayId", operDayId);
-					     
-					   update_object.put("$set", set_object);
-					   trainItemAngles.update(query, update_object, false, true);
+				    	//修改数据
+					    trainDictationWordRepository.updateByReqOpenId(operDayId, reqOpenId, wordInfo);
 				    }else{
-				    	新增数据
-				    	query = new BasicDBObject(); // 查询条件
-					   query.put("reqOpenId", reqOpenId);
-					   DBCursor angleId = trainDictationWords.find(query).limit(1)
-								.sort(new BasicDBObject("wordId", -1));
-					   DBObject objNewId = null;
-					   newwordId = 0;
-					   try {
-							while (angleId.hasNext()) {
-								objNewId = angleId.next();
-								newwordId = (Long) objNewId.get("wordId");
-							}
-						} finally {
-							angleId.close();
-						}
-					   newwordId = newwordId + 1;
+				        //新增数据
+				        trainDictationWords = trainDictationWordRepository.findByReqOpenId(reqOpenId, 1);
+					    wordId = 0;
+					    if(trainDictationWords.size()>0){
+					    	wordId = trainDictationWords.get(0).getWordId();
+					    }
+					    wordId = wordId + 1;
 					  
 					    // 添加数据
-						DBObject newwordinfo = new BasicDBObject();
-						
-						newwordinfo.put("reqOpenId", reqOpenId);
-						newwordinfo.put("wordId", newwordId);
-						newwordinfo.put("wordInfo", wordInfo);
-						newwordinfo.put("nearDayId", operDayId);
-						newwordinfo.put("wordType", "1");
-						newwordinfo.put("done", ""); 
-						newwordinfo.put("check", "");  
-						
-						newwordId = trainDictationWords.save(newwordinfo).getN(); 
+					    trainDictationWord = new TrainDictationWord();
+					    
+					    trainDictationWord.setReqOpenId(reqOpenId);
+					    trainDictationWord.setWordId(wordId);
+					    trainDictationWord.setWordInfo(wordInfo);
+					    trainDictationWord.setNearDayId(operDayId);
+					    trainDictationWord.setWordType("1");
+					    trainDictationWord.setDone("");
+					    trainDictationWord.setCheckFlag("");
+					    
+					    trainDictationWordRepository.save(trainDictationWord);
 				    }
 				}
 			}else if("getWord".equals(funOpType)){
-				
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", reqOpenId);
-				 
-				sort_cloumn = new BasicDBObject(); // 排序字段
-				sort_cloumn.put("nearDayId", -1);
-				
-				cursor = trainDictationWords.find(query, filter_cloumn)
-						.limit(60).sort(sort_cloumn);
-				list = cursor.toArray();
-				if(list.size()>0){
-					
+				trainDictationWords = trainDictationWordRepository.findByReqOpenIdOrderDayId(reqOpenId, 60);
+				if(trainDictationWords.size()>0){
 				}else{
-					获取超级权限人员发布的信息
-					query = new BasicDBObject(); // 查询条件
-					
-					 查询等级组对应的用户明细 
-					BasicDBObject queryUserInfos = new BasicDBObject(); // 查询条件
-					queryUserInfos.put("userGroupType", "Lvl9");
-					DBCursor cursorUserInfo = smallusers.find(queryUserInfos).limit(
-							200);
-					List<DBObject> listUserInfo = cursorUserInfo.toArray();
-					BasicDBList userValues = new BasicDBList();
+					//获取超级权限人员发布的信息
+					List<WxSmallUser> wxSmallUsers = wxSmallUserRepository.findByUserGroupType("Lvl9",200);
+					List<String> listUserInfo = new ArrayList<String>();
 					String listOpenId = "";
-
-					for (int i = 0; i < listUserInfo.size(); i++) {
-						listOpenId = listUserInfo.get(i).get("OpenId")
-								.toString();
-						userValues.add(listOpenId);
+					for (int i = 0; i < wxSmallUsers.size(); i++) {
+						listOpenId = wxSmallUsers.get(i).getOpenId();
+						listUserInfo.add(listOpenId);
 					}
-					query.put("reqOpenId", new BasicDBObject("$in", userValues));
-					 
-					sort_cloumn = new BasicDBObject(); // 排序字段
-					sort_cloumn.put("nearDayId", -1);
-					
-					cursor = trainDictationWords.find(query, filter_cloumn)
-							.limit(60).sort(sort_cloumn);
-					list = cursor.toArray();
+					trainDictationWords = trainDictationWordRepository.findByReqOpenIdGroup(listUserInfo, 60);
 				}
-				jsonarray = JSONArray.fromObject(list);
+				jsonarray = JSONArray.fromObject(trainDictationWords);
 				returnTex = jsonarray.toString();
 				
 			}else if("getWordHis".equals(funOpType)){
 				
-				query = new BasicDBObject(); // 查询条件
-				query.put("reqOpenId", reqOpenId);
-				 
-				sort_cloumn = new BasicDBObject(); // 排序字段
-				sort_cloumn.put("nearDayId", -1);
-				         
-				cursor = trainDictationInfos.find(query, filter_cloumn)
-						.limit(60).sort(sort_cloumn);
-				list = cursor.toArray();
-				jsonarray = JSONArray.fromObject(list);
+				trainDictationInfos = trainDictationInfoRepository.findByReqOpenIdOrderDayId(reqOpenId, 60);
+				jsonarray = JSONArray.fromObject(trainDictationInfos);
 				returnTex = jsonarray.toString();
 				
 			}else if("saveDictation".equals(funOpType)){
@@ -2353,60 +1799,37 @@ public class DataManageInfoSub6 {
 		  		JSONObject jsonInfoOne = new JSONObject(); 
 		  		for(int i=0; i<jsonarray.size(); i++){  
 		  		   jsonInfoOne = JSONObject.fromObject(jsonarray.get(i));   
-		  		 
 		  		   String wordInfo = jsonInfoOne.get("wordInfo").toString(); 
-		  		   
-		  		   记录是否存在
-		  		   query = new BasicDBObject(); // 查询条件
-				   query.put("reqOpenId", reqOpenId);
-				   query.put("wordInfo", wordInfo);
-				   
-				   queryCount = trainDictationInfos.count(query);
+		  		   //记录是否存在
+		  		   queryCount = trainDictationInfoRepository.countByReqOpenId(reqOpenId, wordInfo);
 				   if(queryCount>0){
-					   更新记录
-					   BasicDBObject update_object = new BasicDBObject();
-					   BasicDBObject set_object = new BasicDBObject();
-					   set_object.put("errorTimes", 1);
-					   update_object.put("$inc", set_object);
-					   set_object = new BasicDBObject();
-					   set_object.put("nearDayId", operDayId);
-					   update_object.put("$set", set_object);
-					   trainDictationInfos.update(query, update_object, false, true);
+					   //更新记录
+					   trainDictationInfoRepository.updateByReqOpenId(operDayId, reqOpenId, wordInfo);
 				   }else{
-					   新增记录
-					   query = new BasicDBObject(); // 查询条件
-					   query.put("reqOpenId", reqOpenId);
-					   DBCursor angleId = trainDictationInfos.find(query).limit(1)
-								.sort(new BasicDBObject("dictaId", -1));
-					   DBObject objNewId = null;
+					   //新增记录
+					   trainDictationInfos = trainDictationInfoRepository.findByReqOpenId(reqOpenId, 1);
 					   long newId = 0;
 					   long errorTimes = 1;
-					   try {
-							while (angleId.hasNext()) {
-								objNewId = angleId.next();
-								newId = (Long) objNewId.get("dictaId");
-							}
-						} finally {
-							angleId.close();
-						}
-					    newId = newId + 1;
-					  
-					    // 添加数据
-						DBObject newangleinfo = new BasicDBObject();
-						
-						newangleinfo.put("reqOpenId", reqOpenId);
-						newangleinfo.put("dictaId", newId);
-						newangleinfo.put("wordInfo", wordInfo);
-						newangleinfo.put("errorTimes", errorTimes);
-						newangleinfo.put("nearDayId", operDayId);
-						newangleinfo.put("done", ""); 
-						newangleinfo.put("check", "");
-						    
-						newId = trainDictationInfos.save(newangleinfo).getN();
+					   if(trainDictationInfos.size()>0){
+						   newId = trainDictationInfos.get(0).getDictaId();
+					   }
+					   newId = newId + 1;
+					   
+					   trainDictationInfo = new TrainDictationInfo();
+					   
+					   trainDictationInfo.setReqOpenId(reqOpenId);
+					   trainDictationInfo.setDictaId(newId);
+					   trainDictationInfo.setWordInfo(wordInfo);
+					   trainDictationInfo.setErrorTimes(errorTimes);
+					   trainDictationInfo.setNearDayId(operDayId);
+					   trainDictationInfo.setDone("");
+					   trainDictationInfo.setCheckFlag("");	
+					   
+					   trainDictationInfoRepository.save(trainDictationInfo); 
 				   } 
 		  		}  
 			}
-		} */
+		} 
 		return returnTex;
 	}
 	

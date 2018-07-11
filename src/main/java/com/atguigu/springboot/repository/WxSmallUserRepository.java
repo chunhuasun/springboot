@@ -13,7 +13,10 @@ public interface WxSmallUserRepository extends JpaRepository<WxSmallUser,Integer
 	
 	//List<WxSmallUser> findByCertTypeAndCheckGroupNo(String CertType,int CheckGroupNo,Pageable pageable);
 	//List<WxSmallUser> findByCertTypeAndCheckGroupNo(String CertType,int CheckGroupNo);
-	List<WxSmallUser> findByOpenId(String OpenId);
+	List<WxSmallUser> findByOpenId(String openId);
+	
+	@Query(value = "select * from wx_small_user where user_group_type = :userGroupType order by time_stamp desc limit :limitCount ", nativeQuery = true)
+	List<WxSmallUser> findByUserGroupType(@Param("userGroupType") String userGroupType,@Param("limitCount") Integer limitCount);
 	
 	@Query(value = "select * from wx_small_user where time_stamp < :timeStamp order by time_stamp desc limit :limitCount ", nativeQuery = true)
 	List<WxSmallUser> queryByTimeStamp(@Param("timeStamp") String timeStamp,@Param("limitCount") Integer limitCount);

@@ -28,6 +28,9 @@ import com.atguigu.springboot.serv.PubInfoCheckServ;
 import com.atguigu.springboot.serv.baiduApiFaceCheck;
 import com.atguigu.springboot.serv.baiduApiImageCensor;
 import com.atguigu.springboot.serv.baiduApiInfo;
+import com.atguigu.springboot.serv.baiduApiNlp;
+import com.atguigu.springboot.serv.jisuApiInfo;
+import com.atguigu.springboot.serv.juheApiInfo;
 
 import net.sf.json.JSONObject;
 import net.sf.json.JSONArray;
@@ -47,6 +50,7 @@ import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
 import com.atguigu.springboot.serv.tenxunApiCos;
+import com.atguigu.springboot.serv.sub4.ApiDataManageInfoSub4;
 import com.atguigu.springboot.serv.sub4.DataManageInfoSub4;
 import com.atguigu.springboot.serv.sub4.SpringAsyncSub4;
 
@@ -62,6 +66,11 @@ public class weixinsub4Controller {
 	
 	@Autowired
 	private SpringAsyncSub4 springAsync;
+	
+	@Autowired
+	private ApiDataManageInfoSub4 apiData;
+	
+	
 	 
 	// ---微信URL信息访问--返回小程序训练计划相关信息------------
 	@RequestMapping(value="/weixinsub4GetOpenId", method= RequestMethod.POST)
@@ -388,6 +397,52 @@ public class weixinsub4Controller {
 	  String cos_url = object.get("cosUrl").toString();
       try {
     	  response_info = baiduApiInfo.baiduocrAPiurl(cos_url);
+          st_respMessage = response_info; 
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+      return response_info;
+    }
+	
+	// ---聚合数据--成语词典 API接口--------
+	@RequestMapping(value="/weixinsub4QueryTangshi", method= RequestMethod.POST)
+    @ResponseBody
+    public String wxQueryTangshi(String requestInfo) throws UnknownHostException, NoSuchAlgorithmException {
+      String response_info = "";
+       
+      JSONObject object = null;
+	  object = JSONObject.fromObject(requestInfo);
+	  String qryWord = object.get("qryword").toString();
+      //String qryWord = requestInfo;
+      try {
+    	  
+    	  response_info = apiData.jisuApiQueryTangshi(qryWord);
+    	  
+          st_respMessage = response_info; 
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+      return response_info;
+    }
+	
+	// ---聚合数据--成语词典 API接口--------
+	@RequestMapping(value="/weixinsub4QueryWord", method= RequestMethod.GET)
+    @ResponseBody
+    public String wxQueryWord(String requestInfo) throws UnknownHostException, NoSuchAlgorithmException {
+      String response_info = "";
+      
+      //JSONObject object = null;
+	  //object = JSONObject.fromObject(requestInfo);
+	  //String cos_url = object.get("cosUrl").toString();
+      try {
+    	  //response_info = juheApiInfo.juheQueryWord(requestInfo);
+    	  
+    	  //response_info = baiduApiNlp.apiNlpSentiment(requestInfo);
+    	  
+    	  //response_info = jisuApiInfo.jisuQueryWord(requestInfo);
+    	  //response_info = jisuApiInfo.jisuQueryKeyword(requestInfo);
+    	  response_info = jisuApiInfo.jisuQueryTangshi(requestInfo);
+    	  
           st_respMessage = response_info; 
       } catch (Exception e) {
           e.printStackTrace();

@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import sun.misc.BASE64Decoder;
 
 import com.baidu.aip.face.*;
+import com.baidu.aip.nlp.AipNlp;
 
 public class baiduApiFaceCheck {
 
@@ -107,6 +108,6 @@ public class baiduApiFaceCheck {
 			e.printStackTrace();
 		}
 		return returnText;
-	}
+	} 
 
 }

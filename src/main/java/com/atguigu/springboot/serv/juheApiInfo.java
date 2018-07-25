@@ -46,38 +46,8 @@ public class juheApiInfo {
              /*发送请求获取成语查询详情*/
 			 String translate = HttpRequestProxy.doPost(sendUrl, params, recEncoding);
 			  
- 			
-			/*解析返回结果*/
-			JSONObject object = null;
-			object = JSONObject.fromObject(translate);
-			
-			if(object.getInt("error_code")==0){
-				returnText = object.get("result").toString();
-            }else{
-            	returnText = object.get("error_code").toString()+":"+object.get("reason").toString();
-            }
-			
-			System.out.println("testGroupby returnText-->" + returnText);
-			
-			JSONArray jsonArray = JSONArray.fromObject(returnText);  //将字符串转换为JSON数组
-	        //System.out.println("testGroupby jsonArray-->" + jsonArray.toString());
-	 
-			//后续的结果解析还未处理----------------------------
-	         String ocrinfo = "";
-			 String ocrinfosingle = "";
-			 
-			 int iSize = jsonArray.size();
-			 for (int i = 0; i < iSize; i++) {   //循环获取识别的信息
-				  JSONObject jsonObj = jsonArray.getJSONObject(i);
-					 	
-				  ocrinfosingle = jsonObj.get("words").toString();
-				  //System.out.println("++++++++++++++++ocrinfosingle+++++in----"+ocrinfosingle);
-				  ocrinfo += ocrinfosingle + " ";
-			 } 
-			 
+			 returnText = translate;
 			   
-			 returnText = ocrinfo;
-		      
 		 } catch (Exception e) {  
 		     e.printStackTrace();  
 		 }  

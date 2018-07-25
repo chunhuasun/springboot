@@ -412,18 +412,102 @@ public class weixinsub4Controller {
        
       JSONObject object = null;
 	  object = JSONObject.fromObject(requestInfo);
-	  String qryWord = object.get("qryword").toString();
+	  String qryWord = object.get("opType").toString();
       //String qryWord = requestInfo;
       try {
-    	  
-    	  response_info = apiData.jisuApiQueryTangshi(qryWord);
-    	  
+    	  //首先获取随机词语
+    	  response_info = apiData.avatarApiQueryTangshi(qryWord);
           st_respMessage = response_info; 
       } catch (Exception e) {
           e.printStackTrace();
       }
       return response_info;
     }
+	
+	// ---词语达人--成语词典 API接口--------极速数据API接口----
+	@RequestMapping(value="/weixinsub4QueryPhrase", method= RequestMethod.POST)
+    @ResponseBody
+    public String wxQueryPhrase(String requestInfo) throws UnknownHostException, NoSuchAlgorithmException {
+      String response_info = "";
+       
+      JSONObject object = null;
+	  object = JSONObject.fromObject(requestInfo);
+	  String opType = object.get("opType").toString();
+	  String qryWord = "";
+	  String judgeflag = "";
+	  String libraryid = "";
+	  String reqOpenId = "";
+      //String qryWord = requestInfo;
+      try {
+    	  //获取题目
+    	  if("getPhrase".equals(opType)){
+    		  //qryWord = object.get("qryword").toString();
+    		  //response_info = apiData.jisuApiQueryPhrase(qryWord);
+    		  response_info = apiData.unionApiQueryPhrase(qryWord);
+    	  }else if("sendAnswer".equals(opType)){
+    		  //作答记录
+    		  reqOpenId = object.get("reqOpenId").toString();
+    		  libraryid = object.get("libraryid").toString();
+    		  judgeflag = object.get("judgeflag").toString();
+    		  response_info = apiData.savePlayerAnswerInfo(reqOpenId,Integer.parseInt(libraryid),judgeflag);
+    	  }else if("sendCollect".equals(opType)){
+    		  //收藏经典题目
+    		  reqOpenId = object.get("reqOpenId").toString();
+    		  libraryid = object.get("libraryid").toString();
+    		  response_info = apiData.savePlayerCollectInfo(reqOpenId,Integer.parseInt(libraryid));
+    	  }
+          st_respMessage = response_info; 
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+      return response_info;
+    }
+	
+	
+	// ---奇思妙想--参考题意补充成语
+	@RequestMapping(value="/weixinsub4QueryIdea", method= RequestMethod.POST)
+    @ResponseBody
+    public String wxQueryIdea(String requestInfo) throws UnknownHostException, NoSuchAlgorithmException {
+      String response_info = "";
+       
+      JSONObject object = null;
+	  object = JSONObject.fromObject(requestInfo);
+	  String opType = object.get("opType").toString();
+	  String qryWord = "";
+	  String judgeflag = "";
+	  String libraryid = "";
+	  String reqOpenId = "";
+      //String qryWord = requestInfo;
+      try {
+    	  //获取题目
+    	  if("getPhrase".equals(opType)){
+    		  //qryWord = object.get("qryword").toString();
+    		  response_info = apiData.getIdeaPhrase(qryWord);
+    	  }else if("sendAnswer".equals(opType)){
+    		  //作答记录
+    		  reqOpenId = object.get("reqOpenId").toString();
+    		  libraryid = object.get("libraryid").toString();
+    		  judgeflag = object.get("ideaitem").toString();
+    		  response_info = apiData.savePlayerIdeaInfo(reqOpenId,Integer.parseInt(libraryid),judgeflag);
+    	  }else if("sendCollect".equals(opType)){
+    		  //收藏经典题目
+    		  reqOpenId = object.get("reqOpenId").toString();
+    		  libraryid = object.get("libraryid").toString();
+    		  response_info = apiData.saveIdeaCollectInfo(reqOpenId,Integer.parseInt(libraryid));
+    	  }else if("getRank".equals(opType)){
+    		  //获取答案排名信息
+    		  reqOpenId = object.get("reqOpenId").toString();
+    		  libraryid = object.get("libraryid").toString();
+    		  response_info = apiData.getIdeaRankInfo(reqOpenId,Integer.parseInt(libraryid));
+    		  
+    	  }
+          st_respMessage = response_info; 
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+      return response_info;
+    }
+	
 	
 	// ---聚合数据--成语词典 API接口--------
 	@RequestMapping(value="/weixinsub4QueryWord", method= RequestMethod.GET)

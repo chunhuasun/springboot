@@ -483,6 +483,10 @@ public class weixinsub4Controller {
     	  if("getPhrase".equals(opType)){
     		  //qryWord = object.get("qryword").toString();
     		  response_info = apiData.getIdeaPhrase(qryWord);
+    	  }else if("getChoosePhrase".equals(opType)){
+    		  //qryWord = object.get("qryword").toString();
+    		  libraryid = object.get("libraryid").toString();
+    		  response_info = apiData.getIdeaChoosePhrase(Integer.parseInt(libraryid));
     	  }else if("sendAnswer".equals(opType)){
     		  //作答记录
     		  reqOpenId = object.get("reqOpenId").toString();

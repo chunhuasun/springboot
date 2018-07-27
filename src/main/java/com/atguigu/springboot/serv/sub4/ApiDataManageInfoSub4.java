@@ -547,6 +547,40 @@ public class ApiDataManageInfoSub4 {
 		return returnTex;
 	} 
 	
+	/**获取本地 奇思妙想 中的题目  指定ID的题目 
+	 * 2018-07-27  从本地库中获取题目
+	 * 
+	 * @param qryWord 搜索词
+	 *          
+	 * 
+	 * @return  
+	 */
+	public String getIdeaChoosePhrase(Integer libraryId)
+			throws UnknownHostException {
+
+		 
+		//查询本地数据库中是否存在
+		String returnTex = "";		
+		JSONArray jsonarray;
+		List<LibraryIdeaInfo> libraryIdeaInfos = new ArrayList<LibraryIdeaInfo>();
+		LibraryIdeaInfo libraryIdeaInfo;
+		
+		//获取指定ID的数据
+		libraryIdeaInfos = libraryIdeaInfoRepository.findById(libraryId);
+		if(libraryIdeaInfos.size()>0){
+			libraryIdeaInfo = libraryIdeaInfos.get(0);
+		}else{
+			libraryIdeaInfo = new LibraryIdeaInfo();
+		}
+		 
+		//取出题目的参考答案
+		libraryIdeaInfos = libraryIdeaInfoRepository.findByProblem(libraryIdeaInfo.getProblem(), 30);
+		   
+		jsonarray = JSONArray.fromObject(libraryIdeaInfos);
+		returnTex = jsonarray.toString();
+		return returnTex;
+	} 
+	
 	/**
 	 * 2018-07-16  唐诗API接口， 阿凡达数据
 	 *    先查本地数据库中是否存在，不存在再查询接口，并将数据存入本地数据库
@@ -800,12 +834,7 @@ public class ApiDataManageInfoSub4 {
 	public String getIdeaRankInfo(String reqOpenId,Integer libraryId)
 			throws UnknownHostException {
 
-		
-		// 获取当日日期
-		Date now = new Date();
-		SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd"); // 可以方便地修改日期格式
-		String operDay = dayFormat.format(now);
-		
+		 
 		//查询本地数据库中是否存在
 		String returnTex = "";
 		JSONArray jsonarray;
